@@ -380,7 +380,7 @@ classdef thePlate
             %the scattered field, second is the current
             
             numVals = 360;
-            theta =linspace(0,2*pi,numVals);%linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
+            theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
             rcs_tt = zeros(1,numVals);
             rcs_tp = zeros(1,numVals);
             rcs_pt = zeros(1,numVals);
