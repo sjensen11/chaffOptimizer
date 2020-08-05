@@ -1,4 +1,6 @@
-%% start of a demo script
+%% Generating chaff 
+%operating frequency8-10Ghz
+%size of chaff: 2"x2"
 
 %% this is demostration of chaffElt
 freq = [8 9 10]*10^9; %hz, operating frequency

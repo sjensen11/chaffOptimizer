@@ -79,28 +79,31 @@ classdef chaffElt
         end
         
  %================= get values ============================================ 
+ %they should all have the same size, because numCells
+ %so just use the first plate in array
+ %doing it this way, because it's a little more readable (I think)
         function numElt = getNumEltFull(obj)
             %returns the number of points for the full plate
-            numElt = length(obj.plateFull.Bxn_xx)+length(obj.plateFull.Byn_xx);
+            numElt = length(obj.plateFull(1).Bxn_xx)+length(obj.plateFull.Byn_xx);
         end
 
         function numElt = getNumEltNull(obj)
             %returns the number of points for the null plate
-            numElt = length(obj.plateNull.Bxn_xx) + length(obj.plateNull.Byn_xx);
+            numElt = length(obj.plateNull(1).Bxn_xx) + length(obj.plateNull.Byn_xx);
         end
 
         function numElt = getBxnSize(obj)
             %returns the length of BxnSize 
-            numElt = length(obj.plateNull.Bxn_xx);
+            numElt = length(obj.plateNull(1).Bxn_xx);
         end
 
         function numCells = getNumCellsRow(obj)
             %returns the number of cells in 1D for the full plate
-            numCells = obj.plateFull.NumCells;
+            numCells = obj.plateFull(1).NumCells;
         end
         
         function numCells = getNumCellsFull(obj)
-            numCells = obj.plateFull.NumCells^2;
+            numCells = obj.plateFull(1).NumCells^2;
         end
 %===================== nulling fun ========================================
         function obj = nullNew(obj,nullPos)
@@ -304,49 +307,63 @@ classdef chaffElt
             edgex = unique(edgex);
             edgey = unique(edgey);
             
-            %remove points from zz, Bxn, Byn, ex, ey
-            %zz(badVal) = [] to remove
-            %first shift edgey up by new "M", peterson pg417 because of how
-            %we're counting zz and ee... original M is length(Bxn) subtract
-            %the removed points -> bxn-length(edgex)
-            %get plate info
-            zzLoc = obj.plateFull.ZZ;
-            plateN = obj.plateFull; %wipe old plate
-            
-            %shiftup value needed for y directed current... ie)M+1 in
-            %peterson sum pg417
-            edgeyshiftup = bxn_len-length(edgex)+edgey; 
-            
-            zzLoc(:,edgex) = [];
-            zzLoc(edgex,:) = [];
-            
-            zzLoc(edgeyshiftup,:) = [];
-            zzLoc(:,edgeyshiftup) = [];
-            
-            plateN.EE(edgex) = [];
-            plateN.EE(edgeyshiftup) = [];
-            
-            plateN.Bxn_xx(edgex) = [];
-            plateN.Bxn_yy(edgex) = [];
-            
-            plateN.Byn_xx(edgey) = [];
-            plateN.Byn_yy(edgey) = [];
+            %now we can walk through the different plates
+            for ii = 1:length(obj.freq)
 
-            %store local zz as ZZ in obj
-            plateN.ZZ = zzLoc;
-            plateN.ZZinv= inv(zzLoc);
-            
-            %set plateNull
-            plateN.JJ = plateN.ZZinv*plateN.EE;
-            obj.plateNull = plateN;
-            obj.nullPos = nullPos;
+                %remove points from zz, Bxn, Byn, ex, ey
+                %zz(badVal) = [] to remove
+                %first shift edgey up by new "M", peterson pg417 because of how
+                %we're counting zz and ee... original M is length(Bxn) subtract
+                %the removed points -> bxn-length(edgex)
+                %get plate info
+                plateF = obj.plateFull(ii); 
+                zzLoc = plateF.ZZ;
+                plateN = plateF; %start with full plate
+
+                %shiftup value needed for y directed current... ie)M+1 in
+                %peterson sum pg417
+                edgeyshiftup = bxn_len-length(edgex)+edgey; 
+
+                zzLoc(:,edgex) = [];
+                zzLoc(edgex,:) = [];
+
+                zzLoc(edgeyshiftup,:) = [];
+                zzLoc(:,edgeyshiftup) = [];
+
+                plateN.EE_theta(edgex) = [];
+                plateN.EE_theta(edgeyshiftup) = [];
+                
+                plateN.EE_phi(edgex) = [];
+                plateN.EE_phi(edgeyshiftup) = [];
+
+                plateN.Bxn_xx(edgex) = [];
+                plateN.Bxn_yy(edgex) = [];
+
+                plateN.Byn_xx(edgey) = [];
+                plateN.Byn_yy(edgey) = [];
+
+                %store local zz as ZZ in obj
+                plateN.ZZ = zzLoc;
+                plateN.ZZinv= inv(zzLoc);
+
+                %set plateNull
+                plateN.JJ_theta = plateN.ZZinv*plateN.EE_theta;
+                plateN.JJ_phi = plateN.ZZinv*plateN.EE_phi;
+                obj.plateNull(ii) = plateN;
+                obj.nullPos = nullPos;
+            end
         end
 %================= playing with Einc =================================      
 
         function obj = changeEinc(obj,phiInc,thetaInc)
             %change Einc on both the null plate and full plate
-            obj.plateFull = obj.plateFull.changeEinc(phiInc,thetaInc);
-            obj.plateNull = obj.plateNull.changeEinc(phiInc,thetaInc);
+            for ii = 1:length(obj.freq)
+                plateF = obj.plateFull(ii);
+                plateN = obj.plateNull(ii);
+                
+                obj.plateFull(ii) = plateF.changeEinc(phiInc,thetaInc);
+                obj.plateNull(ii) = plateN.changeEinc(phiInc,thetaInc);
+            end
         end
         
         
@@ -369,53 +386,43 @@ classdef chaffElt
             [row,col] = obj.array2rowcol(xx, NumCells);
             nullpos = [row' col'];
 
-            %rewrite 
-            obj = obj.nullNew(nullpos);
-            
-            %get rcsxx
-            
-            [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull.getRCSVal(thetaInc,phiInc); %at main beam
-            avgRCS = (rcstt+rcstp+rcspt+rcspp)/4;
+            %walk through frequencies
+            freqLen = length(obj.freq);
+            avgRCS = 0;
+            for ii = 1:freqLen
+                %rewrite 
+                obj = obj.nullNew(nullpos);
+
+                %get rcs
+                [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaInc,phiInc); %at main beam
+                avgRCS = (rcstt+rcstp+rcspt+rcspp)/4;
+            end
             
         end
-        function rcs = null2minRCSQuarter(obj,xx,thetaInc,phiInc)
-            %use this function to null values, and then get the RCS value 
-            NumCells = obj.getNumCellsRow();
-            NumCellsQuarter = NumCells/2;
-            %xx is a series of zeros and one, zero means null that position
-            [row,col] = obj.array2rowcol(xx, NumCellsQuarter);
-            nullpos = [row' col'];
-            %pretty sure I delt with this?
-%             %throw away anything close to the edge because I didn't deal
-%             %with that in null Cell
-%             [rowBad, colBad] = find(nullpos==1); %right next to the edge
-%             nullpos(rowBad,:) = [];
-%    
-%             [rowBad,colBad] = find(nullpos==2); %one in from the edge
-%             nullpos(rowBad,:) = [];
+        %pretty sure this function is unused now, but commenting in case
+%         function rcs = null2minRCSQuarter(obj,xx,thetaInc,phiInc)
+%             %use this function to null values, and then get the RCS value 
+%             NumCells = obj.getNumCellsRow();
+%             NumCellsQuarter = NumCells/2;
+%             %xx is a series of zeros and one, zero means null that position
+%             [row,col] = obj.array2rowcol(xx, NumCellsQuarter);
+%             nullpos = [row' col'];
+% 
+%             %rewrite 
+%             obj = obj.nullNew(nullpos);
 %             
+%             %get rcsxx
 %             
-%             [rowBad,colBad] = find(nullpos==NumCells);
-%             nullpos(rowBad,:) = [];
-%             
-%             
-%             [rowBad,colBad] = find(nullpos==NumCells-1);
-%             nullpos(rowBad,:) = [];
-            
-            %rewrite 
-            obj = obj.nullNew(nullpos);
-            
-            %get rcsxx
-            
-            rcs = obj.plateNull.getRCSVal(thetaInc,phiInc); %at main beam
-        end
+%             rcs = obj.plateNull.getRCSVal(thetaInc,phiInc); %at main beam
+%         end
         
         function avgRCS = null2minRCSAvg(obj,xx)
             %seeks to minimize(minus sign in ga makes it maxize) the
             %average RCS over various angles of incidence
             %xx is a series of zeros and one, zero means null that position
             %and is feed into null2minRCS(obj,xx)
-            %note: null2minRCS returns the average over all polarizations
+            %note: null2minRCS returns the average rcs over all polarizations
+            %   ie) (rcs_tt+rcs_tp+rcs_pt+rcs_pp)/4 where p=phi, t = theta
             
             numThetaAngles = length(obj.thetaVals);
             numPhiAngles = length(obj.phiVals);
