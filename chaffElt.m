@@ -33,12 +33,14 @@ classdef chaffElt
             
             
             %make plate
-            lambda = physconst('LightSpeed')/freq;
-            plateLengthLambda = plateLength/lambda; %convert to lambda
+            lambda = physconst('LightSpeed')./freq;
+            plateLengthLambda = plateLength./lambda; %convert to lambda
             
             %want a minimum of lambda/10 divsion
             %divided by 1/10 so multiply by 10
-            NumCells = ceil(plateLengthLambda*10)
+            %need numcells to be the same regardless of lambda plate size,
+            %so use same numcell
+            NumCells = ceil(max(plateLengthLambda)*10)
             if(NumCells <10)
                 NumCells = 16
             end
@@ -52,7 +54,7 @@ classdef chaffElt
                 %I forced the values above to give 2lambda plate length...
                 %this is horrible coding practice right now because I am
                 %lazy
-                disp('this only works for 1,2,4,5lambda lengths right now')
+                disp('this really only works for one freq... should update')
                 disp(['plate length is ' num2str(plateLengthLambda)])
 %                 disp(['what do you want to load? recomend plate' num2str(ceil(plateLengthLambda)*10)]) 
                 loadPlate = input(['what do you want to load? recomend plate' num2str(ceil(plateLengthLambda)*10) ' '],'s');
@@ -60,12 +62,15 @@ classdef chaffElt
                	plate = plateLoad;
                 disp([loadPlate ' loaded'])
             else
+                plate = []; %set up plate
+                for ii = 1:length(freq) %walk through frequencies
+                    
+                    %make plate and set plateFull and plateNull
+                    plateTemp = thePlate(NumCells, plateLengthLambda(ii) ,0,0); %set original incident angles to zero
 
-                %make plate and set plateFull and plateNull
-                plate = thePlate(NumCells, plateLengthLambda ,0,0); %set original incident angles to zero
-
-                plate = plate.generateMatrix();
-                disp('generated plate')
+                    plate = [plate plateTemp.generateMatrix()]; %store in matrix
+                    disp('generated plate')
+                end
             end
             obj.plateFull = plate;
             obj.plateNull = plate;
@@ -344,34 +349,6 @@ classdef chaffElt
             obj.plateNull = obj.plateNull.changeEinc(phiInc,thetaInc);
         end
         
-        function obj = changeEincTHETA(obj,phiInc,thetaInc)
-            %change Einc on both the null plate and full plate
-            %This is just the theta polarizeed
-            obj.plateFull = obj.plateFull.changeEincTHETA(phiInc,thetaInc);
-            obj.plateNull = obj.plateNull.changeEincTHETA(phiInc,thetaInc);
-        end
-        
-        function obj = changeEincPHI(obj,phiInc,thetaInc)
-            %change Einc on both the null plate and full plate
-            %This is just the phi polarizeed
-            obj.plateFull = obj.plateFull.changeEincTHETA(phiInc,thetaInc);
-            obj.plateNull = obj.plateNull.changeEincTHETA(phiInc,thetaInc);
-        end
-        
-        function obj = changeEincX(obj)
-            %just feed with Ex directly incident
-            %... sarah brain hurt thinking about E_theta vs E_phi so 
-            %I'm just hard coding it for my sanity
-            obj.plateFull = obj.plateFull.changeEincX();
-            obj.plateNull = obj.plateNull.changeEincX();
-        end
-        function obj = changeEincY(obj)
-            %just feed with Ex directly incident
-            %... sarah brain hurt thinking about E_theta vs E_phi so 
-            %I'm just hard coding it for my sanity
-            obj.plateFull = obj.plateFull.changeEincY();
-            obj.plateNull = obj.plateNull.changeEincY();
-        end
         
 %================= stuff for optimization =================================            
         function obj = nullNewFromOneArray(obj,xx)
@@ -379,29 +356,41 @@ classdef chaffElt
             %function
             
             NumCells = obj.getNumCellsRow();
-            %xx is a series of zeros and one, zero means null that position
-%             cellPos = find(xx==0); %positions x=0;
-            %get into [row,col] coordinates
-%             row = floor((cellPos-1)./(NumCells-1))+1;
-%             col = cellPos-(row-1).*(NumCells-1);
             [row,col] = obj.array2rowcol(xx, NumCells);
             nullpos = [row' col'];
             %rewrite 
             obj = obj.nullNew(nullpos);
         end
         
-        function rcs = null2minRCS(obj,xx,thetaInc,phiInc)
+        function avgRCS = null2minRCS(obj,xx,thetaInc,phiInc)
             %use this function to null values, and then get the RCS value 
             NumCells = obj.getNumCellsRow();
             %xx is a series of zeros and one, zero means null that position
             [row,col] = obj.array2rowcol(xx, NumCells);
             nullpos = [row' col'];
-            %think I delt with it, but saving code in case
+
+            %rewrite 
+            obj = obj.nullNew(nullpos);
+            
+            %get rcsxx
+            
+            [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull.getRCSVal(thetaInc,phiInc); %at main beam
+            avgRCS = (rcstt+rcstp+rcspt+rcspp)/4;
+            
+        end
+        function rcs = null2minRCSQuarter(obj,xx,thetaInc,phiInc)
+            %use this function to null values, and then get the RCS value 
+            NumCells = obj.getNumCellsRow();
+            NumCellsQuarter = NumCells/2;
+            %xx is a series of zeros and one, zero means null that position
+            [row,col] = obj.array2rowcol(xx, NumCellsQuarter);
+            nullpos = [row' col'];
+            %pretty sure I delt with this?
 %             %throw away anything close to the edge because I didn't deal
 %             %with that in null Cell
 %             [rowBad, colBad] = find(nullpos==1); %right next to the edge
 %             nullpos(rowBad,:) = [];
-%      
+%    
 %             [rowBad,colBad] = find(nullpos==2); %one in from the edge
 %             nullpos(rowBad,:) = [];
 %             
@@ -420,42 +409,13 @@ classdef chaffElt
             
             rcs = obj.plateNull.getRCSVal(thetaInc,phiInc); %at main beam
         end
-        function rcs = null2minRCSQuarter(obj,xx,thetaInc,phiInc)
-            %use this function to null values, and then get the RCS value 
-            NumCells = obj.getNumCellsRow();
-            NumCellsQuarter = NumCells/2;
-            %xx is a series of zeros and one, zero means null that position
-            [row,col] = obj.array2rowcol(xx, NumCellsQuarter);
-            nullpos = [row' col'];
-            %throw away anything close to the edge because I didn't deal
-            %with that in null Cell
-            [rowBad, colBad] = find(nullpos==1); %right next to the edge
-            nullpos(rowBad,:) = [];
-   
-            [rowBad,colBad] = find(nullpos==2); %one in from the edge
-            nullpos(rowBad,:) = [];
-            
-            
-            [rowBad,colBad] = find(nullpos==NumCells);
-            nullpos(rowBad,:) = [];
-            
-            
-            [rowBad,colBad] = find(nullpos==NumCells-1);
-            nullpos(rowBad,:) = [];
-            
-            %rewrite 
-            obj = obj.nullNew(nullpos);
-            
-            %get rcsxx
-            
-            rcs = obj.plateNull.getRCSVal(thetaInc,phiInc); %at main beam
-        end
         
         function avgRCS = null2minRCSAvg(obj,xx)
             %seeks to minimize(minus sign in ga makes it maxize) the
             %average RCS over various angles of incidence
             %xx is a series of zeros and one, zero means null that position
             %and is feed into null2minRCS(obj,xx)
+            %note: null2minRCS returns the average over all polarizations
             
             numThetaAngles = length(obj.thetaVals);
             numPhiAngles = length(obj.phiVals);
@@ -482,7 +442,7 @@ classdef chaffElt
             fullArray = obj.quarter2FullArray(xxQuarter,NumCells);
             
             %null2minRCS code from before
-            avgRCS = null2minRCSAvg(obj,fullArray);
+            avgRCS = obj.null2minRCSAvg(fullArray);
         end
         
         

@@ -467,6 +467,7 @@ classdef thePlate
 
         end
         
+        
         function plotRCSThesis(obj,phi, lambda )
             %DEAD CODE KEEPING FOR DEBUGGIN
             %returns plot that looks like thesis plot for comparison
