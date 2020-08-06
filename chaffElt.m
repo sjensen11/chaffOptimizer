@@ -84,7 +84,7 @@ classdef chaffElt
  %doing it this way, because it's a little more readable (I think)
         function numElt = getNumEltFull(obj)
             %returns the number of points for the full plate
-            numElt = length(obj.plateFull(1).Bxn_xx)+length(obj.plateFull.Byn_xx);
+            numElt = length(obj.plateFull(1).Bxn_xx)+length(obj.plateFull(1).Byn_xx);
         end
 
         function numElt = getNumEltNull(obj)
@@ -93,8 +93,12 @@ classdef chaffElt
         end
 
         function numElt = getBxnSize(obj)
-            %returns the length of BxnSize 
+            %returns the length of BxnSize of the null plate (holes)
             numElt = length(obj.plateNull(1).Bxn_xx);
+        end
+        function numElt = getBxnSizeFull(obj)
+            %returns the length of BxnSize of the full plate (no holes)
+            numElt = length(obj.plateFull(1).Bxn_xx);
         end
 
         function numCells = getNumCellsRow(obj)
@@ -118,8 +122,6 @@ classdef chaffElt
             row = nullPos(:,1);
             col = nullPos(:,2);
             
-            %size of Bxn... M in person sum p417
-            bxn_len = obj.getBxnSize();
 
             %cells/edges per row/col (because assumed square)
             NumCells =obj.getNumCellsRow();
@@ -322,7 +324,7 @@ classdef chaffElt
 
                 %shiftup value needed for y directed current... ie)M+1 in
                 %peterson sum pg417
-                edgeyshiftup = bxn_len-length(edgex)+edgey; 
+                edgeyshiftup = obj.getBxnSizeFull()-length(edgex)+edgey; 
 
                 zzLoc(:,edgex) = [];
                 zzLoc(edgex,:) = [];
@@ -379,7 +381,7 @@ classdef chaffElt
             obj = obj.nullNew(nullpos);
         end
         
-        function avgRCS = null2minRCS(obj,xx,thetaInc,phiInc)
+        function avgRCS = null2minRCS(obj,xx,thetaScat,phiScat)
             %use this function to null values, and then get the RCS value 
             NumCells = obj.getNumCellsRow();
             %xx is a series of zeros and one, zero means null that position
@@ -394,7 +396,7 @@ classdef chaffElt
                 obj = obj.nullNew(nullpos);
 
                 %get rcs
-                [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaInc,phiInc); %at main beam
+                [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaScat,phiScat); %at main beam
                 avgRCS = (rcstt+rcstp+rcspt+rcspp)/4;
             end
             
@@ -591,7 +593,7 @@ classdef chaffElt
             nullPosLoc = obj.nullPos;
             %size of Bxn... M in person sum p417
             %need the full plate Bxn
-            bxn_len = length(obj.plateFull.Bxn_xx);
+            bxn_len = obj.getBxnSizeFull();
             
             %check to see if nullPos actually has values to play with
             if(nullPosLoc) 
