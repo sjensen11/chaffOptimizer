@@ -794,6 +794,7 @@ classdef chaffElt
                 %nullPos doesn't have value so no edges :P
                 edges = []; 
             end %if(obj.nullPos) 
+            
                 %get jjPlot
                 %idea is to start with the null and add zeros where needed...
                 %only have to add one zero per edges
@@ -972,6 +973,83 @@ classdef chaffElt
             
             %take full matrix into array
             fullArray = reshape(fullMat,1,NumCells^2);
+        end
+        
+        function plotCurrentHelper(jjPlot, edgex, edgey, plotTitle)
+            %we're going to have to do the same thing essential 2 times per
+            %frequency (2 polarizations)
+            %this seems perfect for a helper function!
+            %jjPlot: current array in form [Jx;Jy] 
+            %edgex: nullpoints so I know where to place 0 -> Bxn
+            %edgey; nullpoints so I know where to place 0 -> Byn
+            %   this are the upshifted edgesy DON'T START AT 1
+            %plotTitletitle: for plotting
+            
+            %combine edges
+            edges = [edgex edgey];
+            
+            %place 0 where ever needed
+            for ii = 1:length(edges)
+                edgeLoc = edges(ii);
+
+                jjPlot  = [jjPlot(1:edgeLoc-1) 0 jjPlot(edgeLoc:end)];
+
+            end
+            
+            %---plotting stuff--------------
+            %from here code is the same as plate plotting
+            %get full plate for x,y values
+            plateF = obj.plateFull;
+            %initialize matrix
+            NumEdges = plateF.NumCells -1;
+            XX = zeros(plateF.NumCells,NumEdges);
+            YY = zeros(plateF.NumCells,NumEdges);
+            JJMat = zeros(plateF.NumCells,NumEdges);
+
+            for row = 1:plateF.NumCells
+                for col = 1:NumEdges
+                    XX(row,col) = plateF.Bxn_xx(col+NumEdges*(row-1));
+                    YY(row,col) = plateF.Bxn_yy(col+NumEdges*(row-1));
+                    JJMat(row,col) = jjPlot( col+NumEdges*(row-1));
+                end
+            end
+            JxMat = JJMat;
+            xx = XX(1,:); %yes, this is stupid way to do it, but reusing code
+            yy = YY(1,:); %fix this later sarah
+            figure;subplot(1,2,1)
+            imagesc(xx,yy,abs(JxMat));
+%                 figure;surf(XX,YY,abs(JJMat))
+            title(['Jx ', plotTitle]);
+    
+            %plot Jy
+            bxn_len = obj.getBxnSizeFull();
+            if(edges)
+                yup = bxn_len-length(edgex);
+            else
+                yup = bxn_len;
+            end
+            
+            XX = zeros(NumEdges,plateF.NumCells);
+            YY = zeros(NumEdges,plateF.NumCells);
+            JJMat = zeros(NumEdges,plateF.NumCells);
+            for row = 1:NumEdges
+                for col = 1:plateF.NumCells
+                    XX(row,col) = plateF.Byn_xx(row+NumEdges*(col-1));
+                    YY(row,col) = plateF.Byn_yy(row+NumEdges*(col-1));
+                    JJMat(row,col) = jjPlot(yup+row+NumEdges*(col-1));
+                end
+            end
+            JyMat = JJMat;
+            xx = XX(1,:); %yes, this is stupid way to do it, but reusing code
+            yy = YY(1,:); %fix this later sarah
+            subplot(1,2,2);
+            imagesc(xx,yy,abs(JyMat));
+%             figure;surf(XX,YY,abs(JJMat))
+            title(['J_y ', plotTitle]);
+            xlabel('x'); ylabel('y')
+
+            
+            
         end
         
     end
