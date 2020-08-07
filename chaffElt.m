@@ -110,6 +110,12 @@ classdef chaffElt
             numCells = obj.plateFull(1).NumCells^2;
         end
 %===================== nulling fun ========================================
+        function obj = removeNulls(obj)
+            %used to remove null positions... should return to just metal
+            %sheets
+            obj.plateNull = obj.plateFull;
+            obj.nullPos = [];
+        end
         function obj = nullNew(obj,nullPos)
             %keep the same full plate, but null new values (ie, doesn't
             %retain past null Values)
@@ -369,6 +375,7 @@ classdef chaffElt
         end
         
         
+        
 %================= stuff for optimization =================================            
         function obj = nullNewFromOneArray(obj,xx)
             %nulls based off the [0/1] array found from null2minRCS ga
@@ -518,7 +525,10 @@ classdef chaffElt
             chfNulled = obj.nullNewFromOneArray(pointsOnFull); 
         end
 %======================= plot RCS stuff ===================================
-        function [theta,rcsNULL,rcsFULL] =  getBiRCSVals(obj,phi)
+        function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getBiRCSVals(obj,phi)
+            %returns the bistatic radar cross-section... rows are each
+            %individual frequency ie) rcsNull(1) is the first plate
+            %response
             %give phi a default value of 0
             if(nargin <2)
                 phi = 0; 
@@ -526,35 +536,154 @@ classdef chaffElt
            
             numVals = 360;
             theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
-            rcsNULL = zeros(1,numVals);
-            rcsFULL = zeros(1,numVals);
+            freqLen = length(obj.freq);
             
-            for ii = 1:numVals
-                rcsNULL(ii) = obj.plateNull.getRCSVal(theta(ii),phi);
-                rcsFULL(ii) = obj.plateFull.getRCSVal(theta(ii),phi);
+            %pre-allocate matrix
+            rcsTT = zeros(freqLen,numVals);
+            rcsPT = zeros(freqLen,numVals);
+            rcsTP = zeros(freqLen,numVals);
+            rcsPP = zeros(freqLen,numVals);
+            
+            for jj = 1:freqLen
+                for ii = 1:numVals
+                    [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(jj).getRCSVal(theta(ii),phi);
+
+                    rcsTT(jj,ii) = rcstt;
+                    rcsPT(jj,ii) = rcstp;
+                    rcsTP(jj,ii) = rcspt;
+                    rcsPP(jj,ii) = rcspp;
+
+                end
             end
         end
         
-        function plotRCSRange(obj,thetaRange)
-            %mostly for testing just want to see what happens when plotted
-            if (length(thetaRange)>10)
-                error('I didnt program this far. only can do 10 max. You can change this in function code')
-            end
-            figure
-            for ii = 1:length(thetaRange)
-                [phi,rcs] = obj.plateNull.getRCS(thetaRange(ii),0); %don't plot here, plot below so it goes to subplot
-                subplot(2,5,ii); polarplot(phi,10*log10(rcs));
-                title(['\theta=',num2str(thetaRange(ii))])
-            end
+        function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getBiRCSValsFULL(obj,phi)
+            %If you want to compare the null vs the full plate, this
+            %returns the bistatic rcs of the metal sheet
             
+            if(nargin <2)
+                phi = 0; 
+            end
+           
+            numVals = 360;
+            theta =linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
+            freqLen = length(obj.freq);
+            
+            %pre-allocate matrix
+            rcsTT = zeros(freqLen,numVals);
+            rcsPT = zeros(freqLen,numVals);
+            rcsTP = zeros(freqLen,numVals);
+            rcsPP = zeros(freqLen,numVals);
+            
+            for jj = 1:freqLen
+                for ii = 1:numVals
+                    [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(jj).getRCSVal(theta(ii),phi);
+
+                    rcsTT(jj,ii) = rcstt;
+                    rcsPT(jj,ii) = rcstp;
+                    rcsTP(jj,ii) = rcspt;
+                    rcsPP(jj,ii) = rcspp;
+
+                end
+            end
         end
-        function [theta,rcs] = plotMonoStaticRCS(obj,phi)
+        
+        function plotBiRCS(obj,phi,polar)
+            %plots biRCS of null plate
+            %defaults to polar plot
+            if(nargin <3)
+                polar = 1;
+            end
+            [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  obj.getBiRCSVals(phi);
+            
+            freqLen = length(obj.freq);
+            if(polar)
+                for ii= 1:freqLen
+                    figure;
+                    subplot(1,4,1);title('rcs_tt')
+                        polarplot(theta,10*log10(rcsTT(ii,:)));
+                    subplot(1,4,2);title('rcs_pt')
+                        polarplot(theta,10*log10(rcsPT(ii,:)));
+                    subplot(1,4,3);title('rcs_tp')
+                        polarplot(theta,10*log10(rcsTP(ii,:)));
+                    subplot(1,4,4);title('rcs_pp')
+                        polarplot(theta,10*log10(rcsPP(ii,:)));
+                end
+            else
+            end
+        end
+        %------------------mono rcs -------------
+        function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSVals(obj,phi)
+            %returns the bistatic radar cross-section... rows are each
+            %individual frequency ie) rcsNull(1) is the first plate
+            %response
+            %give phi a default value of 0
+            if(nargin <2)
+                phi = 0; 
+            end
+           
+            numVals = 360;
+            theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
+            freqLen = length(obj.freq);
+            
+            %pre-allocate matrix
+            rcsTT = zeros(freqLen,numVals);
+            rcsPT = zeros(freqLen,numVals);
+            rcsTP = zeros(freqLen,numVals);
+            rcsPP = zeros(freqLen,numVals);
+            
+            for jj = 1:length(obj.freq)
+                for ii = 1:numVals
+                    plateN = obj.plateNull(jj).changeEinc(phi,theta(ii));
+                    [rcstt,rcstp,rcspt,rcspp] = plateN.getRCSVal(theta(ii),phi);
+
+                    rcsTT(jj,ii) = rcstt;
+                    rcsPT(jj,ii) = rcstp;
+                    rcsTP(jj,ii) = rcspt;
+                    rcsPP(jj,ii) = rcspp;
+
+                end
+            end
+        end
+       
+        function plotMonoStaticRCS(obj,phi,polar)
             %plots the monostatic RCS over the given theta values
             %returns raw RCS, not dB
-            [theta, rcs] = obj.plateNull.plotMonoRCS(phi);
+            if(nargin <3)
+                polar = 1;
+            end
+            [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSVals(obj,phi);
+            
+            freqLen = length(obj.freq);
+            if(polar)
+                for ii= 1:freqLen
+                    figure;
+                    subplot(1,4,1);title(['rcs_tt freq= ' obj.freq(ii) 'Ghz'])
+                        polarplot(theta,10*log10(rcsTT(ii,:)));
+                    subplot(1,4,2);title('rcs_pt')
+                        polarplot(theta,10*log10(rcsPT(ii,:)));
+                    subplot(1,4,3);title('rcs_tp')
+                        polarplot(theta,10*log10(rcsTP(ii,:)));
+                    subplot(1,4,4);title('rcs_pp')
+                        polarplot(theta,10*log10(rcsPP(ii,:)));
+                end
+            else
+                for ii= 1:freqLen
+                    figure;
+                    subplot(1,4,1);title(['rcs_tt freq= ' obj.freq(ii) 'Ghz'])
+                        plot(theta,10*log10(rcsTT(ii,:)));
+                    subplot(1,4,2);title('rcs_pt')
+                        plot(theta,10*log10(rcsPT(ii,:)));
+                    subplot(1,4,3);title('rcs_tp')
+                        plot(theta,10*log10(rcsTP(ii,:)));
+                    subplot(1,4,4);title('rcs_pp')
+                    plot(theta,10*log10(rcsPP(ii,:)));
+                end
+            end
         end
         
         function plotEincRangeRCS(obj,phiIncRange,thetaVal)
+            %DOESN'T WORK!! FIX!!!
             %plots the RCS at phi = 0 over different Einc (changing phiInc
             %angles)
             %mostly for testing just want to see what happens when plotted
@@ -580,7 +709,8 @@ classdef chaffElt
         end
         
 %==========================================================================
-        function [JxMat,JyMat] = plotCurrent(obj)
+%plotting current
+        function [JJx_theta, JJy_theta, JJx_phi, JJy_phi] = plotCurrent(obj)
             %plot the current of the null plate... idea is to take the code
             %from nullNew but instead of removing values just zeroing them
             %out... this means I need to find all the edges again. Then
@@ -792,54 +922,79 @@ classdef chaffElt
                 edges = [edgex edgeyshiftup]; %store all edges in one spot
             else
                 %nullPos doesn't have value so no edges :P
+                edgex = [];
+                edgey = [];
                 edges = []; 
             end %if(obj.nullPos) 
             
                 %get jjPlot
                 %idea is to start with the null and add zeros where needed...
                 %only have to add one zero per edges
-                jjPlot = obj.plateNull.JJ.';
-
-                for ii = 1:length(edges)
-                    edgeLoc = edges(ii);
-
-                    jjPlot  = [jjPlot(1:edgeLoc-1) 0 jjPlot(edgeLoc:end)];
-
-                end
-
-
 
                 %---plotting stuff--------------
-                %from here code is the same as plate plotting
-                %get full plate for x,y values
-                plateF = obj.plateFull;
-                %initialize matrix
-                NumEdges = plateF.NumCells -1;
-                XX = zeros(plateF.NumCells,NumEdges);
-                YY = zeros(plateF.NumCells,NumEdges);
-                JJMat = zeros(plateF.NumCells,NumEdges);
-
-                for row = 1:plateF.NumCells
-                    for col = 1:NumEdges
-                        XX(row,col) = plateF.Bxn_xx(col+NumEdges*(row-1));
-                        YY(row,col) = plateF.Bxn_yy(col+NumEdges*(row-1));
-                        JJMat(row,col) = jjPlot( col+NumEdges*(row-1));
-                    end
+                %matlab won't let be rotate until after we get it so, have
+                %to get and then can do .' which plotting expects
+                freqLen = length(obj.freq)
+                for ii =1:freqLen
+                    plateN = obj.plateNull(ii);
+                    JJ_theta = plateN.JJ_theta;
+                    JJ_phi = plateN.JJ_phi;
+                    [JJx_theta, JJy_theta] = obj.plotCurrentHelper(JJ_theta.', edgex, edgey, 'theta pol')
+                    [JJx_phi, JJy_phi] = obj.plotCurrentHelper(JJ_phi.', edgex, edgey, 'phi pol')
                 end
-                JxMat = JJMat;
-                xx = XX(1,:); %yes, this is stupid way to do it, but reusing code
-                yy = YY(1,:); %fix this later sarah
-                figure; imagesc(xx,yy,abs(JxMat));
-%                 figure;surf(XX,YY,abs(JJMat))
-                title(['J_x phiInc = ',num2str(plateF.phiInc)]);
-    
-            %plot Jy
-            if(edges)
-                yup = bxn_len-length(edgex);
-            else
-                yup = bxn_len;
+        end
+        
+        function [JxMat,JyMat] = plotCurrentHelper(obj,jjPlot, edgex, edgey, plotTitle)
+            %we're going to have to do the same thing essential 2 times per
+            %frequency (2 polarizations)
+            %this seems perfect for a helper function!
+            %jjPlot: current array in form [Jx;Jy] 
+            %edgex: nullpoints so I know where to place 0 -> Bxn
+            %edgey; nullpoints so I know where to place 0 -> Byn
+            %   this are the upshifted edgesy DON'T START AT 1
+            %plotTitletitle: for plotting
+            
+            %combine edges
+            edges = [edgex edgey];
+            
+            %place 0 where ever needed
+            for ii = 1:length(edges)
+                edgeLoc = edges(ii);
+
+                jjPlot  = [jjPlot(1:edgeLoc-1) 0 jjPlot(edgeLoc:end)];
+
             end
             
+            %---plotting stuff--------------
+            %from here code is the same as plate plotting
+            %get full plate for x,y values
+            plateF = obj.plateFull(1); %this is just w
+            %initialize matrix
+            NumEdges =  obj.getNumCellsRow -1; %number edges in a row is number of cells minus 1
+            XX = zeros(plateF.NumCells,NumEdges);
+            YY = zeros(plateF.NumCells,NumEdges);
+            JJMat = zeros(plateF.NumCells,NumEdges);
+
+            for row = 1:plateF.NumCells
+                for col = 1:NumEdges
+                    XX(row,col) = plateF.Bxn_xx(col+NumEdges*(row-1));
+                    YY(row,col) = plateF.Bxn_yy(col+NumEdges*(row-1));
+                    JJMat(row,col) = jjPlot( col+NumEdges*(row-1));
+                end
+            end
+            JxMat = JJMat;
+            xx = XX(1,:); %yes, this is stupid way to do it, but reusing code
+            yy = YY(1,:); %fix this later sarah
+            figure;subplot(1,2,1)
+            imagesc(xx,yy,abs(JxMat));
+%                 figure;surf(XX,YY,abs(JJMat))
+            title(['Jx ', plotTitle]);
+    
+            %plot Jy
+            
+            %amount we have to go up to get Jy essentially, M in book
+            yup = obj.getBxnSize(); %Bxn length of the nullplate
+
             XX = zeros(NumEdges,plateF.NumCells);
             YY = zeros(NumEdges,plateF.NumCells);
             JJMat = zeros(NumEdges,plateF.NumCells);
@@ -853,13 +1008,18 @@ classdef chaffElt
             JyMat = JJMat;
             xx = XX(1,:); %yes, this is stupid way to do it, but reusing code
             yy = YY(1,:); %fix this later sarah
-            figure; imagesc(xx,yy,abs(JyMat));
+            subplot(1,2,2);
+            imagesc(xx,yy,abs(JyMat));
 %             figure;surf(XX,YY,abs(JJMat))
-            title(['J_y phiInc = ',num2str(plateF.phiInc)]);
+            title(['J_y ', plotTitle]);
             xlabel('x'); ylabel('y')
 
+            
+            
         end
         
+        
+% ---------------------- plotting null position ------------------        
         function plotNullPos(obj)
             %plotting what cells are getting nulled
             %Bxn so row = NumCell, col = NumEdge
@@ -975,82 +1135,7 @@ classdef chaffElt
             fullArray = reshape(fullMat,1,NumCells^2);
         end
         
-        function plotCurrentHelper(jjPlot, edgex, edgey, plotTitle)
-            %we're going to have to do the same thing essential 2 times per
-            %frequency (2 polarizations)
-            %this seems perfect for a helper function!
-            %jjPlot: current array in form [Jx;Jy] 
-            %edgex: nullpoints so I know where to place 0 -> Bxn
-            %edgey; nullpoints so I know where to place 0 -> Byn
-            %   this are the upshifted edgesy DON'T START AT 1
-            %plotTitletitle: for plotting
-            
-            %combine edges
-            edges = [edgex edgey];
-            
-            %place 0 where ever needed
-            for ii = 1:length(edges)
-                edgeLoc = edges(ii);
 
-                jjPlot  = [jjPlot(1:edgeLoc-1) 0 jjPlot(edgeLoc:end)];
-
-            end
-            
-            %---plotting stuff--------------
-            %from here code is the same as plate plotting
-            %get full plate for x,y values
-            plateF = obj.plateFull;
-            %initialize matrix
-            NumEdges = plateF.NumCells -1;
-            XX = zeros(plateF.NumCells,NumEdges);
-            YY = zeros(plateF.NumCells,NumEdges);
-            JJMat = zeros(plateF.NumCells,NumEdges);
-
-            for row = 1:plateF.NumCells
-                for col = 1:NumEdges
-                    XX(row,col) = plateF.Bxn_xx(col+NumEdges*(row-1));
-                    YY(row,col) = plateF.Bxn_yy(col+NumEdges*(row-1));
-                    JJMat(row,col) = jjPlot( col+NumEdges*(row-1));
-                end
-            end
-            JxMat = JJMat;
-            xx = XX(1,:); %yes, this is stupid way to do it, but reusing code
-            yy = YY(1,:); %fix this later sarah
-            figure;subplot(1,2,1)
-            imagesc(xx,yy,abs(JxMat));
-%                 figure;surf(XX,YY,abs(JJMat))
-            title(['Jx ', plotTitle]);
-    
-            %plot Jy
-            bxn_len = obj.getBxnSizeFull();
-            if(edges)
-                yup = bxn_len-length(edgex);
-            else
-                yup = bxn_len;
-            end
-            
-            XX = zeros(NumEdges,plateF.NumCells);
-            YY = zeros(NumEdges,plateF.NumCells);
-            JJMat = zeros(NumEdges,plateF.NumCells);
-            for row = 1:NumEdges
-                for col = 1:plateF.NumCells
-                    XX(row,col) = plateF.Byn_xx(row+NumEdges*(col-1));
-                    YY(row,col) = plateF.Byn_yy(row+NumEdges*(col-1));
-                    JJMat(row,col) = jjPlot(yup+row+NumEdges*(col-1));
-                end
-            end
-            JyMat = JJMat;
-            xx = XX(1,:); %yes, this is stupid way to do it, but reusing code
-            yy = YY(1,:); %fix this later sarah
-            subplot(1,2,2);
-            imagesc(xx,yy,abs(JyMat));
-%             figure;surf(XX,YY,abs(JJMat))
-            title(['J_y ', plotTitle]);
-            xlabel('x'); ylabel('y')
-
-            
-            
-        end
         
     end
     

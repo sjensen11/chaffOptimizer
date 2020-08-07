@@ -468,6 +468,8 @@ classdef thePlate
         end
         
         
+        
+        
         function plotRCSThesis(obj,phi, lambda )
             %DEAD CODE KEEPING FOR DEBUGGIN
             %returns plot that looks like thesis plot for comparison
@@ -606,10 +608,10 @@ classdef thePlate
             %calculate the rcs value from book, first subscipt defines the
             %current (and incident field), second subscript defines the
             %scattered field
-            kk = 2*pi;
-            netta = 377;
-            BxnSize = size(obj.Bxn_xx,2);
-            del = obj.len/obj.NumCells;
+%             kk = 2*pi;
+%             netta = 377;
+%             BxnSize = size(obj.Bxn_xx,2);
+%             del = obj.len/obj.NumCells;
             
             %this is bad coding practice and you should fix it
             %t = theta, phi = phi

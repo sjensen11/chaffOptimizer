@@ -12,4 +12,7 @@ loadVal = 0; % don't have to have value, lets you preload a plate to speed up pr
 chf = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal);
 
 %% optimize code
+tic
 [chfNulled,pointsOnFull,RCSavg] = chf.maximizeRCSAvgSymm();
+runtime = 
+%% getting and plotting the mono rcs
