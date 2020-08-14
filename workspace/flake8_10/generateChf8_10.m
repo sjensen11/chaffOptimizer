@@ -13,8 +13,14 @@ chf = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal);
 
 %% optimize code
 tic
-[chfNulled,pointsOnFull,RCSavg] = chf.maximizeRCSAvgSymm();
+[chfNulled,pointsOnFull,RCSavg] = chf.maximizeRCSAvgSymmPatternSearch(1)
 runtime = toc;
 disp(['minues to run ' num2str(runtime/60)])
 
+
+%% optimize pattern search
+tic
+[chfNulledZero,pointsOnFullZero,RCSavgZero] = chf.maximizeRCSAvgSymmPatternSearch(0);
+runtime = toc;
+disp(['minues to run ' num2str(runtime/60)])
 %% getting and plotting the mono rcs

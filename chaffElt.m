@@ -527,7 +527,7 @@ classdef chaffElt
             chfNulled = obj.nullNewFromOneArray(pointsOnFull); 
         end
         
-        function [chfNulled,pointsOnFull,RCSavg] = maximizeRCSAvgSymmLinProg(obj)
+        function [chfNulled,pointsOnFull,RCSavg] = maximizeRCSAvgSymmPatternSearch(obj,on)
             %runs the genetic algorithm code... the range of angles can be
             %found in chf.null2minRCSAvg
             %tries to build in some symettry assumes each quarter has to
@@ -537,19 +537,21 @@ classdef chaffElt
             numCellsFull = obj.getNumCellsRow(); %Number of cells of full plate
             numCellsQuarter = numCellsFull/2; %number of cells in one quarter
             numPoints = numCellsQuarter^2; %number of points in a quarter
+            if on %start with array of 0 or 1 (no sheet or all metal)
+                startCond = ones(1,numPoints); %initial guess
+            else
+                startCond = zeros(1,numPoints); %initial guess
+            end
 
             pointsOn_lb = zeros(numPoints,1);
             pointsOn_ub = ones(numPoints,1);
-            options = gaoptimset('PlotFcns',...
-             {@gaplotbestf,@gaplotbestindiv,@gaplotexpectation,@gaplotstopping});
-            options = gaoptimset(options,'StallGenLimit',50);
-            options = gaoptimset(options,'Generations',50);
+            options = optimoptions('patternsearch','ScaleMesh','off','PlotFcn',{'psplotbestf','psplotfuncount','psplotbestx'},...
+                                   'MaxIterations',1000);
 
-            options = gaoptimset(options,'TolFun',1e-15);
-            Intcon=1:numPoints;
+
             %maximizing center main beam
             tic
-            [pointsOnVal,RCSavg] = linprog(@(pointsOn) -obj.null2minRCSAvgQuarter(pointsOn),numPoints,[],[],[],[],pointsOn_lb,pointsOn_ub,options);
+            [pointsOnVal,RCSavg] = patternsearch(@(pointsOn) -obj.null2minRCSAvgQuarter(pointsOn),startCond,[],[],[],[],pointsOn_lb,pointsOn_ub,options);
             toc  
             
             %pointsOnVal is just quarter cell, get full array
@@ -813,15 +815,20 @@ classdef chaffElt
                         polarplot(theta,10*log10(rcsTT(ii,:)),theta,10*log10(rcsTTFULL(ii,:)) );
                         hold on
                         polarscatter(obj.thetaVals,10*log10(rcsTTOPT(ii,:))) %optimized theta points
-                        title(['rcs_tt(dB) freq= ' obj.freq(ii) 'Ghz'])
-                        xlabel('theta_inc in radians');ylabel('monorcs (dB)')
+                        title(['rcs tt(dB) freq= ' obj.freq(ii) 'Ghz'])
+                        xlabel('theta_{inc} in radians');ylabel('monorcs (dB)')
+                        ylim([min(10*log10(rcsTT(ii,:))) max(10*log10(rcsTT(ii,:)))])
+                        legend('chaff','metal plate')
                     %phipolarizatoin    
-                    subplot(1,2,2);title(['rcs_pp(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
+                    subplot(1,2,2);
                         polarplot(theta,10*log10(rcsPP(ii,:)),theta,10*log10(rcsPPFULL(ii,:)));
-                        hold on
+                        title(['rcs pp(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
+                        hold on                       
                         polarscatter(obj.thetaVals,10*log10(rcsPPOPT(ii,:))) %optimized theta points
                         title(['rcs_pp(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
-                        xlabel('theta_inc in radians');ylabel('monorcs (dB)')
+                        xlabel('theta_{inc} in radians');ylabel('monorcs (dB)')
+                        ylim([min(10*log10(rcsPP(ii,:))) max(10*log10(rcsPP(ii,:)))])
+                        legend('chaff','metal plate')
                 end
             else
                 for ii= 1:freqLen
@@ -830,14 +837,18 @@ classdef chaffElt
                         plot(theta,10*log10(rcsTT(ii,:)),theta,10*log10(rcsTTFULL(ii,:)) );
                         hold on
                         scatter(obj.thetaVals,10*log10(rcsTTOPT(ii,:))) %optimized theta points
-                        title(['rcs_tt(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
-                        xlabel('theta_inc in radians');ylabel('monorcs (dB)')
+                        title(['rcs tt(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
+                        xlabel('theta_{inc} in radians');ylabel('monorcs (dB)')
+                        ylim([min(10*log10(rcsTT(ii,:))) max(10*log10(rcsTT(ii,:)))])
+                        legend('chaff','metal plate')
                     subplot(1,2,2);
-                        plot(theta,10*log10(rcsPP(ii,:)),theta,10*log10(rcsTTFULL(ii,:)) );
+                        plot(theta,10*log10(rcsPP(ii,:)),theta,10*log10(rcsPPFULL(ii,:)) );
                         hold on
                         scatter(obj.thetaVals,10*log10(rcsPPOPT(ii,:))) %optimized theta points
-                        title(['rcs_pp(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
-                        xlabel('theta_inc in radians');ylabel('monorcs (dB)')
+                        title(['rcs pp(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
+                        xlabel('theta_{inc} in radians');ylabel('monorcs (dB)')
+                        ylim([min(10*log10(rcsPP(ii,:))) max(10*log10(rcsPP(ii,:)))])
+                        legend('chaff','metal plate')
                 end
             end
             
