@@ -404,7 +404,9 @@ classdef chaffElt
 
                 %get rcs
                 [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaScat,phiScat); %at main beam
-                avgRCS = (rcstt+rcstp+rcspt+rcspp)/4;
+                %want to not consider cross polar, because they should be
+                %zero
+                avgRCS = (rcstt+rcspp)/2;
             end
             
         end
@@ -508,14 +510,46 @@ classdef chaffElt
             pointsOn_ub = ones(numPoints,1);
             options = gaoptimset('PlotFcns',...
              {@gaplotbestf,@gaplotbestindiv,@gaplotexpectation,@gaplotstopping});
-            options = gaoptimset(options,'StallGenLimit',100);
-            options = gaoptimset(options,'Generations',100);
+            options = gaoptimset(options,'StallGenLimit',50);
+            options = gaoptimset(options,'Generations',50);
 
             options = gaoptimset(options,'TolFun',1e-15);
             Intcon=1:numPoints;
             %maximizing center main beam
             tic
             [pointsOnVal,RCSavg] = ga(@(pointsOn) -obj.null2minRCSAvgQuarter(pointsOn),numPoints,[],[],[],[],pointsOn_lb,pointsOn_ub,[],Intcon,options);
+            toc  
+            
+            %pointsOnVal is just quarter cell, get full array
+            pointsOnFull = obj.quarter2FullArray(pointsOnVal,numCellsFull);
+
+            %return nulled chaff
+            chfNulled = obj.nullNewFromOneArray(pointsOnFull); 
+        end
+        
+        function [chfNulled,pointsOnFull,RCSavg] = maximizeRCSAvgSymmLinProg(obj)
+            %runs the genetic algorithm code... the range of angles can be
+            %found in chf.null2minRCSAvg
+            %tries to build in some symettry assumes each quarter has to
+            %"look" the same ie) if top left is tt then whole matrix will
+            %be [tt fliplr(tt); flipud(tt) fliplr(flipud(tt))]
+            disp('starting optimizaton for symmetric chaff')
+            numCellsFull = obj.getNumCellsRow(); %Number of cells of full plate
+            numCellsQuarter = numCellsFull/2; %number of cells in one quarter
+            numPoints = numCellsQuarter^2; %number of points in a quarter
+
+            pointsOn_lb = zeros(numPoints,1);
+            pointsOn_ub = ones(numPoints,1);
+            options = gaoptimset('PlotFcns',...
+             {@gaplotbestf,@gaplotbestindiv,@gaplotexpectation,@gaplotstopping});
+            options = gaoptimset(options,'StallGenLimit',50);
+            options = gaoptimset(options,'Generations',50);
+
+            options = gaoptimset(options,'TolFun',1e-15);
+            Intcon=1:numPoints;
+            %maximizing center main beam
+            tic
+            [pointsOnVal,RCSavg] = linprog(@(pointsOn) -obj.null2minRCSAvgQuarter(pointsOn),numPoints,[],[],[],[],pointsOn_lb,pointsOn_ub,options);
             toc  
             
             %pointsOnVal is just quarter cell, get full array
@@ -645,6 +679,77 @@ classdef chaffElt
                 end
             end
         end
+        
+        function [rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSValsOPT(obj,phi)
+            %returns the bistatic radar cross-section at optimized theta 
+            %angles, asssumes we're feeding a "correct" phival... rows are each
+            %individual frequency ie) rcsNull(1) is the first plate
+            %response
+            %give phi a default value of obj.phiVals(1), you can feed
+            %phi!=phivals, please don't
+            if(nargin <2)
+                phi = obj.phiVals; 
+            end
+           
+            
+            theta = obj.thetaVals;%only need top of plate :Plinspace(0,2*pi,numVals);
+            thetaLen = length(theta);
+            freqLen = length(obj.freq);
+            
+            %pre-allocate matrix
+            rcsTT = zeros(freqLen,thetaLen);
+            rcsPT = zeros(freqLen,thetaLen);
+            rcsTP = zeros(freqLen,thetaLen);
+            rcsPP = zeros(freqLen,thetaLen);
+            
+            for jj = 1:length(obj.freq)
+                for ii = 1:thetaLen
+                    plateN = obj.plateNull(jj).changeEinc(phi,theta(ii));
+                    [rcstt,rcstp,rcspt,rcspp] = plateN.getRCSVal(theta(ii),phi);
+
+                    rcsTT(jj,ii) = rcstt;
+                    rcsPT(jj,ii) = rcstp;
+                    rcsTP(jj,ii) = rcspt;
+                    rcsPP(jj,ii) = rcspp;
+
+                end
+            end
+        end
+        
+        function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSValsFULL(obj,phi)
+            %returns the bistatic radar cross-section... rows are each
+            %individual frequency ie) rcsNull(1) is the first plate
+            %response
+            %gives the full plate... mostly using to compare against nulled
+            %plate
+            %give phi a default value of 0
+            if(nargin <2)
+                phi = 0; 
+            end
+           
+            numVals = 360;
+            theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
+            freqLen = length(obj.freq);
+            
+            %pre-allocate matrix
+            rcsTT = zeros(freqLen,numVals);
+            rcsPT = zeros(freqLen,numVals);
+            rcsTP = zeros(freqLen,numVals);
+            rcsPP = zeros(freqLen,numVals);
+            
+            for jj = 1:length(obj.freq)
+                for ii = 1:numVals
+                    plateF = obj.plateFull(jj).changeEinc(phi,theta(ii));
+                    [rcstt,rcstp,rcspt,rcspp] = plateF.getRCSVal(theta(ii),phi);
+
+                    rcsTT(jj,ii) = rcstt;
+                    rcsPT(jj,ii) = rcstp;
+                    rcsTP(jj,ii) = rcspt;
+                    rcsPP(jj,ii) = rcspp;
+
+                end
+            end
+        end
        
         function plotMonoStaticRCS(obj,phi,polar)
             %plots the monostatic RCS over the given theta values
@@ -653,12 +758,12 @@ classdef chaffElt
                 polar = 1;
             end
             [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSVals(obj,phi);
-            
             freqLen = length(obj.freq);
+            
             if(polar)
                 for ii= 1:freqLen
                     figure;
-                    subplot(1,4,1);title(['rcs_tt freq= ' obj.freq(ii) 'Ghz'])
+                    subplot(1,4,1);title(['rcs_tt freq= ' num2str(obj.freq(ii)) 'Ghz'])
                         polarplot(theta,10*log10(rcsTT(ii,:)));
                     subplot(1,4,2);title('rcs_pt')
                         polarplot(theta,10*log10(rcsPT(ii,:)));
@@ -670,7 +775,7 @@ classdef chaffElt
             else
                 for ii= 1:freqLen
                     figure;
-                    subplot(1,4,1);title(['rcs_tt freq= ' obj.freq(ii) 'Ghz'])
+                    subplot(1,4,1);title(['rcs_tt freq= ' num2str(obj.freq(ii)) 'Ghz'])
                         plot(theta,10*log10(rcsTT(ii,:)));
                     subplot(1,4,2);title('rcs_pt')
                         plot(theta,10*log10(rcsPT(ii,:)));
@@ -682,6 +787,89 @@ classdef chaffElt
             end
         end
         
+        function plotMonoImprove(obj,phi,polar)
+            %plots theta_theta and phi_phi monoRCS of both the metal and
+            %whole plate
+            %polar = 1: plots polar, polar=0 plots rectangular... defaults
+            %to 1
+            %listen, this isn't super smart... I'm assuming you're feeding
+            %it a "correct" phi, I'm just using phi = 0 tbh
+            if(nargin <3)
+                polar = 1;
+            end
+            %get rcs values for null plate and full plate
+            [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSVals(obj,phi);
+            [theta,rcsTTFULL, rcsPTFULL, rcsTPFULL, rcsPPFULL] =  getMonoRCSValsFULL(obj,phi);
+            
+            %get optimized points
+            [rcsTTOPT, rcsPTOPT, rcsTPOPT, rcsPPOPT] =  getMonoRCSValsOPT(obj,phi);
+
+            freqLen = length(obj.freq);
+            if(polar)
+                for ii= 1:freqLen
+                    figure;
+                    %theta-theta polarization
+                    subplot(1,2,1);
+                        polarplot(theta,10*log10(rcsTT(ii,:)),theta,10*log10(rcsTTFULL(ii,:)) );
+                        hold on
+                        polarscatter(obj.thetaVals,10*log10(rcsTTOPT(ii,:))) %optimized theta points
+                        title(['rcs_tt(dB) freq= ' obj.freq(ii) 'Ghz'])
+                        xlabel('theta_inc in radians');ylabel('monorcs (dB)')
+                    %phipolarizatoin    
+                    subplot(1,2,2);title(['rcs_pp(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
+                        polarplot(theta,10*log10(rcsPP(ii,:)),theta,10*log10(rcsPPFULL(ii,:)));
+                        hold on
+                        polarscatter(obj.thetaVals,10*log10(rcsPPOPT(ii,:))) %optimized theta points
+                        title(['rcs_pp(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
+                        xlabel('theta_inc in radians');ylabel('monorcs (dB)')
+                end
+            else
+                for ii= 1:freqLen
+                    figure;
+                    subplot(1,2,1);
+                        plot(theta,10*log10(rcsTT(ii,:)),theta,10*log10(rcsTTFULL(ii,:)) );
+                        hold on
+                        scatter(obj.thetaVals,10*log10(rcsTTOPT(ii,:))) %optimized theta points
+                        title(['rcs_tt(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
+                        xlabel('theta_inc in radians');ylabel('monorcs (dB)')
+                    subplot(1,2,2);
+                        plot(theta,10*log10(rcsPP(ii,:)),theta,10*log10(rcsTTFULL(ii,:)) );
+                        hold on
+                        scatter(obj.thetaVals,10*log10(rcsPPOPT(ii,:))) %optimized theta points
+                        title(['rcs_pp(dB) freq= ' num2str(obj.freq(ii)*10^-9) 'Ghz'])
+                        xlabel('theta_inc in radians');ylabel('monorcs (dB)')
+                end
+            end
+            
+        end
+
+        
+        function avgRCS = compareRCS(obj)
+            %DOESN'T WORK!!! think this is a bad idea so ignoring
+            %looks at the average RCS over defined range and sees if it
+            %improved
+            %This returns a matrix of the avg rcs over the given angles for
+            %each frequency
+            %just want to check and make sure it's 'improving'
+            thetaLoc = obj.thetaVals;
+            phiLoc = obj.phiVals;
+            avgRCS = zeros(1,length(obj.freq));
+            for pp = 1:length(obj.freq) %walk through frequency
+                plateN = obj.plateNull(pp)
+                rcsTemp = 0;
+                for ii = 1:length(thetaLoc)
+                    for jj = 1:length(phiLoc)
+                        [rcstt,rcstp,rcspt,rcspp] = obj.plateNull.getRCSVal(thetaLoc(ii),phiLoc(jj));
+                    end
+                end
+                
+            end
+            
+        end
+        
+        
+        
+% ============== old code ==========================        
         function plotEincRangeRCS(obj,phiIncRange,thetaVal)
             %DOESN'T WORK!! FIX!!!
             %plots the RCS at phi = 0 over different Einc (changing phiInc
@@ -1023,7 +1211,7 @@ classdef chaffElt
         function plotNullPos(obj)
             %plotting what cells are getting nulled
             %Bxn so row = NumCell, col = NumEdge
-            plateF = obj.plateFull;
+            plateF = obj.plateFull(1);
             
             nullPosLocal = obj.nullPos; %have local value of nullPosLocal
                       
@@ -1093,8 +1281,8 @@ classdef chaffElt
             end
             
         end
-        
     end
+        
     
     methods (Static)
         function [row,col] = array2rowcol(xx, CellsPerRow)
