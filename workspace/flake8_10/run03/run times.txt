@@ -1,0 +1,3 @@
+run03: 1160.172 minutes
+run04 - start full: 817.5984 minutes
+run04 - start null: 641.3939 minutes

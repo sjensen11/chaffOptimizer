@@ -1228,7 +1228,7 @@ classdef chaffElt
                       
             del = plateF.Bxn_xx(2)-plateF.Bxn_xx(1); %get del 
             
-            xx = linspace(del/2,plateF.len,plateF.NumCells);
+            xx = linspace(del/2,obj.plateLength/.0254,plateF.NumCells);
             yy = xx; %because square
             % plotting stuff
 %             [XX,YY] = meshgrid(xx,yy);
@@ -1252,6 +1252,8 @@ classdef chaffElt
             
             figure;imagesc('XData',xx,'YData',yy,'CData',nullPlot) %plot
             title('to size')
+            xlabel('inches')
+            ylabel('inches')
             hold on
             %plot grid
 %             for ii = 1:plateF.NumCells-1

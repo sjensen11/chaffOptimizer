@@ -2,3 +2,8 @@
 workspace/flake8_10/gaTest.mat
 workspace/flake8_10/patternsearch.mat
 workspace/flake8_10/test_phi0.mat
+workspace/flake8_10/run02/10ghz.png
+*.png
+*.pptx
+*.fig
+*.mat
