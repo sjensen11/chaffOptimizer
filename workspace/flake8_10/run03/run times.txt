@@ -1,3 +1,17 @@
+run03-05 had 18 cell accross
+
 run03: 1160.172 minutes
 run04 - start full: 817.5984 minutes
+			starts at rcs = 14.66
+			best rcs = 19.64
+			function evaluations: 2060
+			generations: 81
 run04 - start null: 641.3939 minutes
+			3213 function evaluations
+			best rcs = 21.39
+run04 - ga: 1202.9715 minutes (20 hours)
+			50 generations (leveled out around 45 though)
+			best rcs: 19.56
+			
+
+
