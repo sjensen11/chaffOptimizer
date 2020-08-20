@@ -550,9 +550,7 @@ classdef chaffElt
 
 
             %maximizing center main beam
-            tic
             [pointsOnVal,RCSavg] = patternsearch(@(pointsOn) -obj.null2minRCSAvgQuarter(pointsOn),startCond,[],[],[],[],pointsOn_lb,pointsOn_ub,options);
-            toc  
             
             %pointsOnVal is just quarter cell, get full array
             pointsOnFull = obj.quarter2FullArray(pointsOnVal,numCellsFull);
