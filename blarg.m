@@ -1,56 +1,67 @@
+%% figuring out averaging
+tt = [2 4 6 8 3 1];
+%% figuring out ploting
+% numVals = 5;
+% theta = linspace(-pi/2,pi/2,numVals)
+% phi = linspace(0,pi,numVals)
+% TT = repmat(theta,numVals,1)
+% PP = repmat(phi.',1,numVals)
+% Vals = sin(TT).*sin(PP);
+%  figure;mesh(TT,PP,Vals);
+
 %% curent plotter bug testing
 %something is wrong with current plotter so trying
-nullPosLoc = [2 2]
-row = nullPosLoc(:,1);
-col = nullPosLoc(:,2);
-
-NumCells = 3;
-NumEdge = NumCells -1;
-bxn_len = NumCells*NumEdge;
-
-nullLen = size(nullPosLoc,1)
-cellNum = zeros(1,nullLen)
-
-%allocating maximum space needed for edges... -1 so that I can throw
-%anything I don't use away
-edgex = zeros(1,4*nullLen)-1; %[];
-edgey = zeros(1,4*nullLen)-1;%[];
-edgex_count = 1;
-edgey_count = 1;
-
-innerNulls = nullPosLoc; %want to save nullPos right now
-[rowBad, colBad] = find(innerNulls==1); %right next to the edge
-innerNulls(rowBad,:) = [];
-
-[rowBad,colBad] = find(innerNulls==NumCells);
-innerNulls(rowBad,:) = [];
-
-for ii = 1:size(innerNulls,1)
-    rowVal = innerNulls(ii,1); colVal = innerNulls(ii,2); 
-    %edge 1,2 next to eachother and 3,4 next to eachother
-    edge1 = (rowVal-1)*(NumCells-1) +(colVal-1); %each time through removes one edge previous
-    edge2 = (rowVal-1)*(NumCells-1) + colVal;
-    edge3 = (colVal-1)*(NumCells-1) + (rowVal-1);
-    edge4 = (colVal-1)*(NumCells-1) +  rowVal;
-
-    edgex(edgex_count:edgex_count+1) = [edge1 edge2];
-    edgey(edgey_count:edgey_count+1) = [edge3 edge4];
-
-    edgex_count = edgex_count+2; %added 2 edges
-    edgey_count = edgey_count+2; %added 2 edges
-end
-
-%throw out uncessary allocation 
-edgex(edgex==-1) = [];
-edgey(edgey==-1) = [];
-
-%finally get values
-edgex = unique(edgex);
-edgey = unique(edgey);
-% edgeyshiftup = bxn_len-length(edgex)+edgey; 
-edgeyshiftup = bxn_len+edgey; 
-
-edges = [edgex edgeyshiftup]; %store all edges in one spot
+% nullPosLoc = [2 2]
+% row = nullPosLoc(:,1);
+% col = nullPosLoc(:,2);
+% 
+% NumCells = 3;
+% NumEdge = NumCells -1;
+% bxn_len = NumCells*NumEdge;
+% 
+% nullLen = size(nullPosLoc,1)
+% cellNum = zeros(1,nullLen)
+% 
+% %allocating maximum space needed for edges... -1 so that I can throw
+% %anything I don't use away
+% edgex = zeros(1,4*nullLen)-1; %[];
+% edgey = zeros(1,4*nullLen)-1;%[];
+% edgex_count = 1;
+% edgey_count = 1;
+% 
+% innerNulls = nullPosLoc; %want to save nullPos right now
+% [rowBad, colBad] = find(innerNulls==1); %right next to the edge
+% innerNulls(rowBad,:) = [];
+% 
+% [rowBad,colBad] = find(innerNulls==NumCells);
+% innerNulls(rowBad,:) = [];
+% 
+% for ii = 1:size(innerNulls,1)
+%     rowVal = innerNulls(ii,1); colVal = innerNulls(ii,2); 
+%     %edge 1,2 next to eachother and 3,4 next to eachother
+%     edge1 = (rowVal-1)*(NumCells-1) +(colVal-1); %each time through removes one edge previous
+%     edge2 = (rowVal-1)*(NumCells-1) + colVal;
+%     edge3 = (colVal-1)*(NumCells-1) + (rowVal-1);
+%     edge4 = (colVal-1)*(NumCells-1) +  rowVal;
+% 
+%     edgex(edgex_count:edgex_count+1) = [edge1 edge2];
+%     edgey(edgey_count:edgey_count+1) = [edge3 edge4];
+% 
+%     edgex_count = edgex_count+2; %added 2 edges
+%     edgey_count = edgey_count+2; %added 2 edges
+% end
+% 
+% %throw out uncessary allocation 
+% edgex(edgex==-1) = [];
+% edgey(edgey==-1) = [];
+% 
+% %finally get values
+% edgex = unique(edgex);
+% edgey = unique(edgey);
+% % edgeyshiftup = bxn_len-length(edgex)+edgey; 
+% edgeyshiftup = bxn_len+edgey; 
+% 
+% edges = [edgex edgeyshiftup]; %store all edges in one spot
 
 %% running balanis eq to play with comsol
 

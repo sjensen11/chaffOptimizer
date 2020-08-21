@@ -398,9 +398,14 @@ classdef chaffElt
 
             %walk through frequencies
             freqLen = length(obj.freq);
-            %allocate rcs values
-            avgRCS = zeros(1,freqLen);
-            
+            %have to do the first one on the outside
+            obj = obj.nullNew(nullpos);
+
+            %get rcs
+            [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaScat,phiScat); %at main beam
+            %want to not consider cross polar, because they should be
+            %zero
+            avgRCS = (rcstt+rcspp)/2;
             for ii = 1:freqLen
                 %rewrite 
                 obj = obj.nullNew(nullpos);
@@ -409,9 +414,8 @@ classdef chaffElt
                 [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaScat,phiScat); %at main beam
                 %want to not consider cross polar, because they should be
                 %zero
-                avgRCS(ii) = (rcstt+rcspp)/2;
+                avgRCS = (rcstt+rcspp)/2;
             end
-            avgRCS = sum(avgRCS)/freqLen;
             
         end
         %pretty sure this function is unused now, but commenting in case
