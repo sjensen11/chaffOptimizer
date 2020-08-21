@@ -406,7 +406,7 @@ classdef chaffElt
                 obj = obj.nullNew(nullpos);
 
                 %get rcs
-                [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaScat,phiScat); %at main beam
+                [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaScat,phiScat); 
                 %want to not consider cross polar, because they should be
                 %zero
                 avgRCS(ii) = (rcstt+rcspp)/2;
@@ -414,22 +414,6 @@ classdef chaffElt
             avgRCS = sum(avgRCS)/freqLen;
             
         end
-        %pretty sure this function is unused now, but commenting in case
-%         function rcs = null2minRCSQuarter(obj,xx,thetaInc,phiInc)
-%             %use this function to null values, and then get the RCS value 
-%             NumCells = obj.getNumCellsRow();
-%             NumCellsQuarter = NumCells/2;
-%             %xx is a series of zeros and one, zero means null that position
-%             [row,col] = obj.array2rowcol(xx, NumCellsQuarter);
-%             nullpos = [row' col'];
-% 
-%             %rewrite 
-%             obj = obj.nullNew(nullpos);
-%             
-%             %get rcsxx
-%             
-%             rcs = obj.plateNull.getRCSVal(thetaInc,phiInc); %at main beam
-%         end
         
         function avgRCS = null2minRCSAvg(obj,xx)
             %seeks to minimize(minus sign in ga makes it maxize) the
@@ -834,8 +818,8 @@ classdef chaffElt
                         rcsFullPP(ii,jj) = rcspp;
                         
                         %get null plate info next
-                        plateF = obj.plateNull(currPlate).changeEinc(phi(jj),theta(ii));
-                        [rcstt,rcstp,rcspt,rcspp] = plateF.getRCSVal(theta(ii),phi(jj));
+                        plateN = obj.plateNull(currPlate).changeEinc(phi(jj),theta(ii));
+                        [rcstt,rcstp,rcspt,rcspp] = plateN.getRCSVal(theta(ii),phi(jj));
                         rcsNullTT(ii,jj) = rcstt; 
                         rcsNullPP(ii,jj) = rcspp;
                     end
@@ -848,18 +832,31 @@ classdef chaffElt
                     rcsNullPP = 10*log10(rcsNullPP);
                 end
                 %plot theta-theta polarization first
-                [XX,YY,ZZ] = sph2cart(PP,TT,rcsNullPP);
                 figure;
+                subplot(1,2,1);
+                [XX,YY,ZZ] = sph2cart(PP,TT,rcsFullPP);
                 s = surf(XX,YY,ZZ);
                 s.EdgeColor = 'none';
+                title(['rcs_{phi} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 
-
-                XX = rcsNullPP.*sin(TT).*cos(PP);
-                YY = rcsNullPP.*sin(TT).*sin(PP);
-                ZZ = rcsNullPP.*cos(TT);
-                figure;
-                surf(XX,YY,ZZ)
+                subplot(1,2,2);
+                [XX,YY,ZZ] = sph2cart(PP,TT,rcsNullPP);
+                s = surf(XX,YY,ZZ);
                 s.EdgeColor = 'none';
+                title(['rcs_{phi} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                
+                figure;
+                subplot(1,2,1);
+                [XX,YY,ZZ] = sph2cart(PP,TT,rcsFullTT);
+                s = surf(XX,YY,ZZ);
+                s.EdgeColor = 'none';
+                title(['rcs_{theta} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                
+                subplot(1,2,2);
+                [XX,YY,ZZ] = sph2cart(PP,TT,rcsNullTT);
+                s = surf(XX,YY,ZZ);
+                s.EdgeColor = 'none';
+                title(['rcs_{theta} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 
                 
             end
@@ -937,7 +934,7 @@ classdef chaffElt
         end
 
         
-        function avgRCS = compareRCS(obj)
+        function [perfDif,avgRCSNull,avgRCSFull] = compareRCS(obj)
             %looks at the average RCS over defined range and sees if it
             %improved
             %This should return the same thing the optimizer sees, so we're
@@ -946,19 +943,49 @@ classdef chaffElt
             %just want to check and make sure it's 'improving'
             thetaLoc = obj.thetaVals;
             phiLoc = obj.phiVals;
-            avgRCSNULL = 0;
-            for pp = 1:length(obj.freq) %walk through frequency
-                plateN = obj.plateNull(pp);
-                rcsTemp = 0;
-                for ii = 1:length(thetaLoc)
-                    for jj = 1:length(phiLoc)
-                        [rcstt,rcstp,rcspt,rcspp] = obj.plateNull.getRCSVal(thetaLoc(ii),phiLoc(jj);
-                        k
-                    end
-                end
-                
-            end
             
+            freqLen = length(obj.freq);
+            avgRCSTemp = zeros(1,freqLen);
+            rcsTemp = 0;
+            %doing this in pieces so I can think
+            %do null plate first
+            for ii = 1:length(thetaLoc)
+                for jj = 1:length(phiLoc)
+                    
+                    for pp = 1:freqLen %walk through frequency
+                        obj = obj.changeEinc(phiLoc(jj),thetaLoc(ii));
+                        [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(pp).getRCSVal(thetaLoc(ii),phiLoc(jj));
+                        avgRCSTemp(pp) = (rcstt+rcspp)/2;
+                        
+                    end
+                    rcsTemp =rcsTemp+ sum(avgRCSTemp)/freqLen;             
+                end
+            end
+            avgRCSNull = rcsTemp/(length(thetaLoc)*length(phiLoc));
+%             perfDif = 0;
+%             avgRCSFull = 0;
+            %now do full plate
+            rcsTemp = 0;
+            for ii = 1:length(thetaLoc)
+                for jj = 1:length(phiLoc)
+                    
+                    for pp = 1:freqLen %walk through frequency
+
+                        obj = obj.changeEinc(phiLoc(jj),thetaLoc(ii));
+                        [rcstt,rcstp,rcspt,rcspp] = obj.plateFull(pp).getRCSVal(thetaLoc(ii),phiLoc(jj));
+                        avgRCSTemp(pp) = (rcstt+rcspp)/2;
+                        
+                    end
+                    rcsTemp =rcsTemp+ sum(avgRCSTemp)/freqLen;             
+                end
+            end
+            avgRCSFull = rcsTemp/(length(thetaLoc)*length(phiLoc));
+
+
+            %calculate percent difference
+            diff = abs(avgRCSNull-avgRCSFull);
+            avgT = (avgRCSNull+avgRCSFull)/2;
+            perfDif = diff/avgT;
         end
         
         

@@ -1,5 +1,9 @@
-%% figuring out averaging
-tt = [2 4 6 8 3 1];
+%% calculating percentage difference
+V1 = 18.01;
+V2 = 9.59
+diff = V1-V2;
+avg = (V1+V2)/2
+perfDiff = diff/avg
 %% figuring out ploting
 % numVals = 5;
 % theta = linspace(-pi/2,pi/2,numVals)

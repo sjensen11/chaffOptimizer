@@ -15,11 +15,22 @@ chf = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal);
 
 %% optimize pattern search
 tic
-[chfNulledZero,pointsOnFullZero,RCSavgZero] = chf.maximizeRCSAvgSymmPatternSearch(0);
+[chfNulledZero,pointsOnFullZero,RCSavgZero] = chf.maximizeRCSAvgSymmPatternSearch(1);
 runtime = toc;
 disp(['minues to run ' num2str(runtime/60)])
 
 %% getting and plotting the mono rcs
+%something is wrong here
 numPoints = chf.getNumCellsFull();
 xx = ones(numPoints,1);
 avgRCSPLATE = chfNulledZero.null2minRCSAvg(xx)
+
+avgRCSCHF = chfNulledZero.null2minRCSAvg(pointsOnFullZero)
+
+
+%% getting RCS averages and percent differences
+%avgRCSFull is right?
+[perfDif,avgRCSNull,avgRCSFull] = chfNulledZero.compareRCS()
+
+%% plot monostatic RCS 3d
+chfNulledZero.plotMonoImprove(0)
