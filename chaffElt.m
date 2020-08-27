@@ -781,7 +781,7 @@ classdef chaffElt
             end
         end
         
-        function plotMonoImprove(obj,dbOn)
+        function plotMono3D(obj,dbOn)
             %plots the rcs of null plate and the full plate
             %dbOn - plots in dB, defaults to off
             if(nargin <2)
@@ -867,6 +867,90 @@ classdef chaffElt
             
 %             polarplot3d(rcsFull)
         end
+        
+        
+        function plotMonoFlat(obj,dbOn)
+            %plots the rcs of null plate and the full plate
+            %dbOn - plots in dB, defaults to off
+            if(nargin <2)
+                dbOn = 0;
+            end
+            numVals = 100;
+            phi = linspace(-pi,pi,numVals);
+            theta = linspace(-pi/2,pi/2,numVals);
+            %this is horrible coding, but I know theta from 
+            %get rcs values for null plate and full plate
+            
+            %preallocate plates
+            rcsFullTT = zeros(numVals);
+            rcsFullPP = zeros(numVals);
+            rcsNullTT = zeros(numVals) ;
+            rcsNullPP = zeros(numVals) ;
+            
+            %make grid for mesh
+            TT = repmat(theta,numVals,1);
+            PP = repmat(phi.',1,numVals);
+            
+            %get frequency length
+            freqLen = length(obj.freq);
+            for currPlate = 1:freqLen
+                for ii= 1:length(phi)
+                    for jj = 1:length(theta)
+                        %change incident field
+                        obj = obj.changeEinc(phi(ii),theta(ii));
+                        %get full plate info first
+                        plateF = obj.plateFull(currPlate).changeEinc(phi(jj),theta(ii));
+                        [rcstt,rcstp,rcspt,rcspp] = plateF.getRCSVal(theta(ii),phi(jj));
+
+                        rcsFullTT(ii,jj) = rcstt; 
+                        rcsFullPP(ii,jj) = rcspp;
+                        
+                        %get null plate info next
+                        plateN = obj.plateNull(currPlate).changeEinc(phi(jj),theta(ii));
+                        [rcstt,rcstp,rcspt,rcspp] = plateN.getRCSVal(theta(ii),phi(jj));
+                        rcsNullTT(ii,jj) = rcstt; 
+                        rcsNullPP(ii,jj) = rcspp;
+                    end
+                end
+                
+                if(dbOn)
+                    rcsFullTT = 10*log10(rcsFullTT);
+                    rcsFullPP = 10*log10(rcsFullPP);
+                    rcsNullTT = 10*log10(rcsNullTT);
+                    rcsNullPP = 10*log10(rcsNullPP);
+                end
+                %plot theta-theta polarization first
+                figure;
+                subplot(1,2,1);
+                s = imagesc(PP(1,:),TT(1,:),rcsFullPP,[0,1]);
+                colorbar;
+                title(['rcs_{phi} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                
+                subplot(1,2,2);                
+                s = imagesc(PP(1,:),TT(1,:),rcsNullPP,[0,1]);
+                title(['rcs_{phi} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                
+                figure;
+                subplot(1,2,1);
+                s = imagesc(PP(1,:),TT(1,:),rcsFullTT,[0,1]);
+                colorbar;
+                title(['rcs_{theta} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                
+                subplot(1,2,2);
+                s = imagesc(PP(1,:),TT(1,:),rcsNullTT,[0,1]);
+                colorbar;
+                title(['rcs_{theta} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                
+                
+            end
+
+            
+            %convert to cartesian coordinates
+
+            
+%             polarplot3d(rcsFull)
+        end
+        
         
         function plotMonoImproveSinglePhi(obj,phi,polar)
             %plots theta_theta and phi_phi monoRCS of both the metal and
