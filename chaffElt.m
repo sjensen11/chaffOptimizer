@@ -922,24 +922,29 @@ classdef chaffElt
                 %plot theta-theta polarization first
                 figure;
                 subplot(1,2,1);
-                s = imagesc(PP(1,:),TT(1,:),rcsFullPP,[0,1]);
+                s = imagesc(phi,theta,rcsFullPP,[0,1]);
                 colorbar;
                 title(['rcs_{phi} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                xlabel('phi');ylabel('theta')
                 
                 subplot(1,2,2);                
-                s = imagesc(PP(1,:),TT(1,:),rcsNullPP,[0,1]);
+                s = imagesc(phi,theta,rcsNullPP,[0,1]);
+                colorbar;
                 title(['rcs_{phi} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                xlabel('phi');ylabel('theta')
                 
                 figure;
                 subplot(1,2,1);
-                s = imagesc(PP(1,:),TT(1,:),rcsFullTT,[0,1]);
+                s = imagesc(phi,theta,rcsFullTT,[0,1]);
                 colorbar;
                 title(['rcs_{theta} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                xlabel('phi');ylabel('theta')
                 
                 subplot(1,2,2);
-                s = imagesc(PP(1,:),TT(1,:),rcsNullTT,[0,1]);
+                s = imagesc(phi,theta,rcsNullTT,[0,1]);
                 colorbar;
                 title(['rcs_{theta} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                xlabel('phi');ylabel('theta')
                 
                 
             end
@@ -1018,7 +1023,69 @@ classdef chaffElt
         end
 
         
-        function [perfDif,avgRCSNull,avgRCSFull] = compareRCS(obj)
+        function [avgRCSNull, avgRCSFull, perfDif] = compareRCS(obj,numVals)
+            %plots the rcs of null plate and the full plate
+            %dbOn - plots in dB, defaults to off
+            if(nargin<2)
+                %defaults to 180 points in phi and theta
+                numVals = 180;
+            end
+            phi = linspace(0,pi/2,numVals);
+            theta = linspace(0,pi/2,numVals);
+            %this is horrible coding, but I know theta from 
+            %get rcs values for null plate and full plate
+            
+            %preallocate plates
+            rcsFullTT = zeros(numVals);
+            rcsFullPP = zeros(numVals);
+            rcsNullTT = zeros(numVals) ;
+            rcsNullPP = zeros(numVals) ;
+            
+            rcsFullTot = zeros(numVals) ;
+            rcsNullTot = zeros(numVals) ;
+            
+            %make grid for mesh
+            TT = repmat(theta,numVals,1);
+            PP = repmat(phi.',1,numVals);
+            
+            %get frequency length
+            freqLen = length(obj.freq);
+            for currPlate = 1:freqLen
+                for ii= 1:length(phi)
+                    for jj = 1:length(theta)
+                        %change incident field
+                        obj = obj.changeEinc(phi(ii),theta(ii));
+                        %get full plate info first
+                        plateF = obj.plateFull(currPlate).changeEinc(phi(jj),theta(ii));
+                        [rcstt,rcstp,rcspt,rcspp] = plateF.getRCSVal(theta(ii),phi(jj));
+
+                        rcsFullTT(ii,jj) = rcstt; 
+                        rcsFullPP(ii,jj) = rcspp;
+                        
+                        %get null plate info next
+                        plateN = obj.plateNull(currPlate).changeEinc(phi(jj),theta(ii));
+                        [rcstt,rcstp,rcspt,rcspp] = plateN.getRCSVal(theta(ii),phi(jj));
+                        rcsNullTT(ii,jj) = rcstt; 
+                        rcsNullPP(ii,jj) = rcspp;
+                    end
+                end
+                
+                %plot theta-theta polarization first
+                rcsNullTot = rcsNullTot + rcsNullTT+rcsNullPP;
+                rcsFullTot = rcsFullTot + rcsFullTT+rcsFullPP;
+                
+            end
+
+            avgRCSNull = sum(sum(rcsNullTot))/numel(rcsNullTot);
+            avgRCSFull = sum(sum(rcsFullTot))/numel(rcsFullTot);
+            
+            %calculate percent difference
+            diff = abs(avgRCSNull-avgRCSFull);
+            avgT = (avgRCSNull+avgRCSFull)/2;
+            perfDif = diff/avgT;
+        end
+        
+        function [perfDif,avgRCSNull,avgRCSFull] = compareRCSTestedPoints(obj)
             %looks at the average RCS over defined range and sees if it
             %improved
             %This should return the same thing the optimizer sees, so we're

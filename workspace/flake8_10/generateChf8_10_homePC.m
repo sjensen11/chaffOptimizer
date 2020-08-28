@@ -34,3 +34,6 @@ avgRCSCHF = chfNulledZero.null2minRCSAvg(pointsOnFullZero)
 
 %% plot monostatic RCS 3d
 chfNulledZero.plotMonoFlat(0)
+
+%% compare RCS
+[avgRCSNull, avgRCSFull, perfDif] = chfNulledZero.compareRCS()
