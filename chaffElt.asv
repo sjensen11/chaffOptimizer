@@ -389,8 +389,33 @@ classdef chaffElt
             obj = obj.nullNew(nullpos);
         end
         
+        function avgRCS = null2minRCS(obj,xx,thetaScat,phiScat)
+            %use this function to null values, and then get the RCS value 
+            NumCells = obj.getNumCellsRow();
+            %xx is a series of zeros and one, zero means null that position
+            [row,col] = obj.array2rowcol(xx, NumCells);
+            nullpos = [row' col'];
+
+            %walk through frequencies
+            freqLen = length(obj.freq);
+            %allocate rcs values
+            avgRCS = zeros(1,freqLen);
+            
+            for ii = 1:freqLen
+                %rewrite 
+                obj = obj.nullNew(nullpos);
+
+                %get rcs
+                [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaScat,phiScat); 
+                %want to not consider cross polar, because they should be
+                %zero
+                avgRCS(ii) = (rcstt+rcspp)/2;
+            end
+            avgRCS = sum(avgRCS)/freqLen;
+            
+        end
         
-        function rcsAvg = null2minRCSAvg(obj,xx)
+        function avgRCS = null2minRCSAvg(obj,xx)
             %seeks to minimize(minus sign in ga makes it maxize) the
             %average RCS over various angles of incidence
             %xx is a series of zeros and one, zero means null that position
@@ -417,33 +442,28 @@ classdef chaffElt
             numPhiAngles = length(obj.phiVals);
             
             %intialize rcsSum
-            rcsAvg = 0;%this one will be over all frequencies and then averaged 
+            rcsSum = 0;%this one will be over all frequencies and then averaged 
             rcsOneFreq = 0;
             
             for pp = 1:freqLen %walk through frequencies
-                
-                %walk through the frequencies
-                for ii = 1:numThetaAngles
-                    for jj = 1:numPhiAngles
-                        
-                        %update Einc only do plateNull for speed ie) full
-                        %plate isn't updated, shouldn't matter though
-                        obj.plateNull(pp) = obj.plateNull(pp).changeEinc(phiLoc(jj),thetaLoc(ii));
-                        
-                        %get rcs
-                        [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(pp).getRCSVal(thetaLoc(ii),phiLoc(jj));
-                        rcsOneFreq =rcsOneFreq+ (rcstt+rcspp)/2;
-                    end
-                    
-                    %average over angles 
-                    rcsAvg =rcsAvg+ rcsOneFreq/(length(thetaLoc)*length(phiLoc));
-                    
-                    %reset rcsOneFreq for next frequency
-                    rcsOneFreq = 0;
-                end
-                
+                obj = obj.changeEinc(phiLoc(jj),thetaLoc(ii));
             end
-            rcsAvg = rcsAvg/freqLen;
+            
+%             for ii = 1:numThetaAngles
+%                 for jj = 1:numPhiAngles
+%                     
+%                     for pp = 1:freqLen %walk through frequency
+%                         obj = obj.changeEinc(phiLoc(jj),thetaLoc(ii));
+%                         [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(pp).getRCSVal(thetaLoc(ii),phiLoc(jj));
+%                         rcsOneFreq =rcsOneFreq+ (rcstt+rcspp)/2;
+%                         
+%                     end
+%                     rcsSum =rcsSum+ sum(avgRCSTemp)/freqLen; 
+%                     rcsOneFreq = 0; %reset rcsOneFreq
+%                 end
+%             end
+%             avgRCS = rcsSum/(length(thetaLoc)*length(phiLoc));
+            
 
         end
         
