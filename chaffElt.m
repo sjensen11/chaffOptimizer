@@ -40,7 +40,7 @@ classdef chaffElt
             %divided by 1/10 so multiply by 10
             %need numcells to be the same regardless of lambda plate size,
             %so use same numcell
-            NumCells = ceil(max(plateLengthLambda)*10)
+            NumCells = ceil(max(plateLengthLambda)*20)
             if(NumCells <10)
                 NumCells = 16
             end
@@ -930,29 +930,37 @@ classdef chaffElt
                     rcsNullTT = 10*log10(rcsNullTT);
                     rcsNullPP = 10*log10(rcsNullPP);
                 end
-                %plot theta-theta polarization first
+                %plot phi-phi polarization first
+                %get values for colarbar
+                maxVal = max(max([rcsFullPP rcsNullPP]));
+                minxVal = min(min([rcsFullPP rcsNullPP]));
+                
                 figure;
                 subplot(1,2,1);
-                s = imagesc(phi,theta,rcsFullPP,[0,1]);
+                s = imagesc(phi,theta,rcsFullPP,[minxVal, maxVal]);
                 colorbar;
                 title(['rcs_{phi} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
                 subplot(1,2,2);                
-                s = imagesc(phi,theta,rcsNullPP,[0,1]);
+                s = imagesc(phi,theta,rcsNullPP,[minxVal, maxVal]);
                 colorbar;
                 title(['rcs_{phi} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
+                %now plot theta-theta
+                %get values for colarbar
+                maxVal = max(max([rcsFullTT rcsNullTT]));
+                minxVal = min(min([rcsFullTT rcsNullTT]));
                 figure;
                 subplot(1,2,1);
-                s = imagesc(phi,theta,rcsFullTT,[0,1]);
+                s = imagesc(phi,theta,rcsFullTT,[minxVal, maxVal]);
                 colorbar;
                 title(['rcs_{theta} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
                 subplot(1,2,2);
-                s = imagesc(phi,theta,rcsNullTT,[0,1]);
+                s = imagesc(phi,theta,rcsNullTT,[minxVal,maxVal]);
                 colorbar;
                 title(['rcs_{theta} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
