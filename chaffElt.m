@@ -16,14 +16,17 @@ classdef chaffElt
         phiVals %phi (azimuth) values to be swept over
         %values for plotting
         
+        %multiplier
+        multiplier %defaults to lda/10 division, can control that with this
+        
     end
     
     methods
-        function obj = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal)
+        function obj = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal,multiplier)
             %creates chf(freq,plateLength,thetaVals, phiVals,load) load is
             %an optional variable that loads a previously generated plate
             %to save time
-            
+            %multiplier: code defaults to lda/10 division, can control that with this
             %set given values
             obj.freq = freq;
             obj.thetaVals = thetaVals;
@@ -31,6 +34,10 @@ classdef chaffElt
             obj.nullPos = [];
             obj.plateLength = plateLength;
             
+            %multiplier defaults to 1
+            if(nargin<6)
+                multiplier = 1;
+            end
             
             %make plate
             lambda = physconst('LightSpeed')./freq;
@@ -40,7 +47,7 @@ classdef chaffElt
             %divided by 1/10 so multiply by 10
             %need numcells to be the same regardless of lambda plate size,
             %so use same numcell
-            NumCells = ceil(max(plateLengthLambda)*10)
+            NumCells = ceil(max(plateLengthLambda)*10*multiplier)
             if(NumCells <10)
                 NumCells = 16
             end
@@ -389,8 +396,16 @@ classdef chaffElt
             obj = obj.nullNew(nullpos);
         end
         
-        function avgRCS = null2minRCS(obj,xx,thetaScat,phiScat)
-            %use this function to null values, and then get the RCS value 
+        
+        function rcsAvg = null2minRCSAvg(obj,xx)
+            %seeks to minimize(minus sign in ga makes it maxize) the
+            %average RCS over various angles of incidence
+            %xx is a series of zeros and one, zero means null that position
+            %and is feed into null2minRCS(obj,xx)
+            %note: null2minRCS returns the average rcs over all polarizations
+            %   ie) (rcs_tt+rcs_tp+rcs_pt+rcs_pp)/4 where p=phi, t = theta
+
+            %-----Null Plate----------
             NumCells = obj.getNumCellsRow();
             %xx is a series of zeros and one, zero means null that position
             [row,col] = obj.array2rowcol(xx, NumCells);
@@ -398,42 +413,45 @@ classdef chaffElt
 
             %walk through frequencies
             freqLen = length(obj.freq);
-            %allocate rcs values
-            avgRCS = zeros(1,freqLen);
-            
-            for ii = 1:freqLen
-                %rewrite 
-                obj = obj.nullNew(nullpos);
+            obj = obj.nullNew(nullpos);
 
-                %get rcs
-                [rcstt,rcstp,rcspt,rcspp] =  obj.plateNull(ii).getRCSVal(thetaScat,phiScat); 
-                %want to not consider cross polar, because they should be
-                %zero
-                avgRCS(ii) = (rcstt+rcspp)/2;
-            end
-            avgRCS = sum(avgRCS)/freqLen;
-            
-        end
-        
-        function avgRCS = null2minRCSAvg(obj,xx)
-            %seeks to minimize(minus sign in ga makes it maxize) the
-            %average RCS over various angles of incidence
-            %xx is a series of zeros and one, zero means null that position
-            %and is feed into null2minRCS(obj,xx)
-            %note: null2minRCS returns the average rcs over all polarizations
-            %   ie) (rcs_tt+rcs_tp+rcs_pt+rcs_pp)/4 where p=phi, t = theta
+            %---get monoRCS at various points-------------
+            %get angles to walk over
+            thetaLoc = obj.thetaVals;
+            phiLoc = obj.phiVals;
             
             numThetaAngles = length(obj.thetaVals);
             numPhiAngles = length(obj.phiVals);
-            rcsSum = 0;
             
-            for ii = 1:numThetaAngles
-                for jj =1:numPhiAngles
-                    obj = obj.changeEinc(obj.phiVals(jj),obj.thetaVals(ii));
-                    rcsSum = rcsSum + obj.null2minRCS(xx,obj.thetaVals(ii),obj.phiVals(jj));
+            %intialize rcsSum
+            rcsAvg = 0;%this one will be over all frequencies and then averaged 
+            rcsOneFreq = 0;
+            
+            for pp = 1:freqLen %walk through frequencies
+                
+                %walk through the frequencies
+                for ii = 1:numThetaAngles
+                    for jj = 1:numPhiAngles
+                        
+                        %update Einc only do plateNull for speed ie) full
+                        %plate isn't updated, shouldn't matter though
+                        obj.plateNull(pp) = obj.plateNull(pp).changeEinc(phiLoc(jj),thetaLoc(ii));
+                        
+                        %get rcs
+                        [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(pp).getRCSVal(thetaLoc(ii),phiLoc(jj));
+                        rcsOneFreq =rcsOneFreq+ (rcstt+rcspp)/2;
+                    end
+                    
+                    %average over angles 
+                    rcsAvg =rcsAvg+ rcsOneFreq/(length(thetaLoc)*length(phiLoc));
+                    
+                    %reset rcsOneFreq for next frequency
+                    rcsOneFreq = 0;
                 end
+                
             end
-            avgRCS = rcsSum/(numThetaAngles*numPhiAngles);
+            rcsAvg = rcsAvg/freqLen;
+
         end
         
         function avgRCS = null2minRCSAvgQuarter(obj,xxQuarter)
@@ -919,29 +937,37 @@ classdef chaffElt
                     rcsNullTT = 10*log10(rcsNullTT);
                     rcsNullPP = 10*log10(rcsNullPP);
                 end
-                %plot theta-theta polarization first
+                %plot phi-phi polarization first
+                %get values for colarbar
+                maxVal = max(max([rcsFullPP rcsNullPP]));
+                minxVal = min(min([rcsFullPP rcsNullPP]));
+                
                 figure;
                 subplot(1,2,1);
-                s = imagesc(phi,theta,rcsFullPP,[0,1]);
+                s = imagesc(phi,theta,rcsFullPP,[minxVal, maxVal]);
                 colorbar;
                 title(['rcs_{phi} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
                 subplot(1,2,2);                
-                s = imagesc(phi,theta,rcsNullPP,[0,1]);
+                s = imagesc(phi,theta,rcsNullPP,[minxVal, maxVal]);
                 colorbar;
                 title(['rcs_{phi} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
+                %now plot theta-theta
+                %get values for colarbar
+                maxVal = max(max([rcsFullTT rcsNullTT]));
+                minxVal = min(min([rcsFullTT rcsNullTT]));
                 figure;
                 subplot(1,2,1);
-                s = imagesc(phi,theta,rcsFullTT,[0,1]);
+                s = imagesc(phi,theta,rcsFullTT,[minxVal, maxVal]);
                 colorbar;
                 title(['rcs_{theta} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
                 subplot(1,2,2);
-                s = imagesc(phi,theta,rcsNullTT,[0,1]);
+                s = imagesc(phi,theta,rcsNullTT,[minxVal,maxVal]);
                 colorbar;
                 title(['rcs_{theta} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
@@ -1138,35 +1164,7 @@ classdef chaffElt
             avgT = (avgRCSNull+avgRCSFull)/2;
             perfDif = diff/avgT;
         end
-        
-        
-        
-% ============== old code ==========================        
-        function plotEincRangeRCS(obj,phiIncRange,thetaVal)
-            %DOESN'T WORK!! FIX!!!
-            %plots the RCS at phi = 0 over different Einc (changing phiInc
-            %angles)
-            %mostly for testing just want to see what happens when plotted
-            if (length(phiIncRange)>15)
-                error('I didnt program this far. only can do 15 max...')
-            end
-            figure;
-            for ii = 1:length(phiIncRange)
-                chfTemp = obj.changeEinc(phiIncRange(ii),thetaVal);
-                [theta,rcs] = chfTemp.plateNull.getRCS(0,0); %don't plot here, plot below so it goes to subplot
-                subplot(3,5,ii); polarplot(theta,10*log10(rcs));
-                title(['\phi_{inc}= ',num2str(phiIncRange(ii))])
-            end
-            
-            figure
-            for ii=1:length(phiIncRange)
-                chfTemp = obj.changeEinc(phiIncRange(ii),thetaVal);
-                [theta,rcs] = chfTemp.plateFull.getRCS(0,0); %don't plot here, plot below so it goes to subplot
-                subplot(3,5,ii); polarplot(theta,10*log10(rcs));
-                title(['\phi_{inc}= ',num2str(phiIncRange(ii))])
-            end
-            
-        end
+
         
 %==========================================================================
 %plotting current

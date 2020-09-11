@@ -332,8 +332,8 @@ classdef thePlate
 %    
             obj.EE_theta = [ex_theta ey_theta].'; %update EE and make col vector
             obj.EE_phi = [ex_phi ey_phi].';
-            obj.JJ_theta = obj.ZZinv*obj.EE_theta/obj.scaleFactor; %update JJ
-            obj.JJ_phi = obj.ZZinv*obj.EE_phi/obj.scaleFactor; %update JJ
+            obj.JJ_theta = obj.ZZinv*obj.EE_theta; %update JJ
+            obj.JJ_phi = obj.ZZinv*obj.EE_phi; %update JJ
         end
         
         function [E_theta, E_phi] = getEincComponents(obj)
@@ -600,7 +600,7 @@ classdef thePlate
             
             
             %all the constants
-            rcs_theta = ((kk*netta).^2 / (4*pi)) .* rcs_theta;   
+             rcs_theta = ((kk*netta).^2 / (4*pi)) .* rcs_theta;   
             rcs_phi = ((kk*netta).^2 / (4*pi)) .* rcs_phi ;   
         end
         
@@ -608,42 +608,13 @@ classdef thePlate
             %calculate the rcs value from book, first subscipt defines the
             %current (and incident field), second subscript defines the
             %scattered field
-%             kk = 2*pi;
-%             netta = 377;
-%             BxnSize = size(obj.Bxn_xx,2);
-%             del = obj.len/obj.NumCells;
-            
+    
             %this is bad coding practice and you should fix it
             %t = theta, phi = phi
             [rcstt, rcstp] = getRCSValThesis(obj,theta,phi ,obj.JJ_theta);
             [rcspt, rcspp] = getRCSValThesis(obj,theta,phi ,obj.JJ_phi);
 
-%             %do theta first
-%             Jx = obj.JJ_theta(1:BxnSize).';
-%             Jy = obj.JJ_theta(BxnSize+1:end).';
-%             
-%   
-%             psi_xn = (del^2)*exp(1j*kk *sin(theta)* (obj.Bxn_xx.*cos(phi) +obj.Bxn_yy.*sin(phi) ) );
-%             psi_yn = (del^2)*exp(1j*kk *sin(theta)* (obj.Byn_xx.*cos(phi) +obj.Byn_yy.*sin(phi) ) );
-%             
-%             rcs = abs( sum(cos(phi)*cos(theta)* Jx.*psi_xn) + sum(sin(phi)*cos(theta)*Jy.*psi_yn))^2 +...
-%                              abs( sum(sin(phi)*-Jx.*psi_xn) + sum(cos(phi)*Jy.*psi_yn))^2 ;
-%                       
-%             rcs_theta = ((kk*netta).^2 / (4*pi)) * rcs;    
-%             
-%             %now do phi
-%             Jx = obj.JJ_phi(1:BxnSize).';
-%             Jy = obj.JJ_phi(BxnSize+1:end).';
-%             
-%   
-%             psi_xn = (del^2)*exp(1j*kk *sin(theta)* (obj.Bxn_xx.*cos(phi) +obj.Bxn_yy.*sin(phi) ) );
-%             psi_yn = (del^2)*exp(1j*kk *sin(theta)* (obj.Byn_xx.*cos(phi) +obj.Byn_yy.*sin(phi) ) );
-%             
-%             rcs = abs( sum(cos(phi)*cos(theta)* Jx.*psi_xn) + sum(sin(phi)*cos(theta)*Jy.*psi_yn))^2 +...
-%                              abs( sum(sin(phi)*-Jx.*psi_xn) + sum(cos(phi)*Jy.*psi_yn))^2 ;
-%                       
-%             rcs_phi = ((kk*netta).^2 / (4*pi)) * rcs; 
-            
+
         end
         
         
