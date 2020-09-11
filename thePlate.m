@@ -576,7 +576,6 @@ classdef thePlate
         end
        
         function [rcs_theta,rcs_phi] = getRCSValThesis(obj,theta,phi ,JJLoc)
-            %DEAD CODE, KEEPING FOR DEBUGGING
             %trying to get the RCS values in the form for the thesis paper
             %mark found... given JJvalues (because I had to break them 
             %apart from E_theta, E_phi) function returns
@@ -600,7 +599,7 @@ classdef thePlate
             
             
             %all the constants
-             rcs_theta = ((kk*netta).^2 / (4*pi)) .* rcs_theta;   
+            rcs_theta = ((kk*netta).^2 / (4*pi)) .* rcs_theta;   
             rcs_phi = ((kk*netta).^2 / (4*pi)) .* rcs_phi ;   
         end
         
@@ -616,6 +615,55 @@ classdef thePlate
 
 
         end
+        
+        function [rcstt,rcstp,rcspt,rcspp] = getRCSValTTPP(obj,theta,phi)
+            %calculate the rcs value from book, first subscipt defines the
+            %current (and incident field), second subscript defines the
+            %scattered field
+            %only returns theta_theta and phi_phi
+            %trying to speed up code, so removes getRCSValThesis
+    
+            %this is bad coding practice and you should fix it
+            %t = theta, phi = phi
+
+            
+            %-------rcs tt -----------------
+            kk = 2*pi;
+            netta = 377;                    
+            BxnSize = size(obj.Bxn_xx,2);
+            del = obj.len/obj.NumCells;
+            
+            JJLoc = obj.JJ_theta;
+            Jx = JJLoc(1:BxnSize).';
+            Jy = JJLoc(BxnSize+1:end).';
+            
+            psi_xn = (del^2).*exp(1j.*kk .*sin(theta).* (obj.Bxn_xx.*cos(phi) +obj.Bxn_yy.*sin(phi) ) );
+            psi_yn = (del^2).*exp(1j.*kk .*sin(theta).* (obj.Byn_xx.*cos(phi) +obj.Byn_yy.*sin(phi) ) );
+            
+            %get RCS - theta
+            rcs_theta = abs( sum(cos(phi).*cos(theta).* Jx.*psi_xn) + sum(sin(phi).*cos(theta).*Jy.*psi_yn))^2;
+                        
+            %all the constants
+            rcstt = ((kk*netta).^2 / (4*pi)) .* rcs_theta;
+            
+            %-------rcs pp -----------------
+            JJLoc = obj.JJ_phi;
+            Jx = JJLoc(1:BxnSize).';
+            Jy = JJLoc(BxnSize+1:end).';
+            
+            psi_xn = (del^2).*exp(1j.*kk .*sin(theta).* (obj.Bxn_xx.*cos(phi) +obj.Bxn_yy.*sin(phi) ) );
+            psi_yn = (del^2).*exp(1j.*kk .*sin(theta).* (obj.Byn_xx.*cos(phi) +obj.Byn_yy.*sin(phi) ) );
+            
+            %get RCS - phi
+            rcs_phi = abs( sum(sin(phi).*-Jx.*psi_xn) + sum(cos(phi).*Jy.*psi_yn))^2 ;
+                        
+            %all the constants
+            rcspp = ((kk*netta).^2 / (4*pi)) .* rcs_phi;
+            
+
+
+        end
+        
         
         
         function plotEinc(obj)
