@@ -9,7 +9,7 @@
 % thetaVals = linspace(0,pi/2,50);
 % phiVals = linspace(0,pi/2,40);
 % loadVal = 0; % don't have to have value, lets you preload a plate to speed up process (if already generated)
-% chf = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal);
+% chf = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal,1.1);
 
 %% optimize code
 % tic

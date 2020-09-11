@@ -16,14 +16,17 @@ classdef chaffElt
         phiVals %phi (azimuth) values to be swept over
         %values for plotting
         
+        %multiplier
+        multiplier %defaults to lda/10 division, can control that with this
+        
     end
     
     methods
-        function obj = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal)
+        function obj = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal,multiplier)
             %creates chf(freq,plateLength,thetaVals, phiVals,load) load is
             %an optional variable that loads a previously generated plate
             %to save time
-            
+            %multiplier: code defaults to lda/10 division, can control that with this
             %set given values
             obj.freq = freq;
             obj.thetaVals = thetaVals;
@@ -31,6 +34,10 @@ classdef chaffElt
             obj.nullPos = [];
             obj.plateLength = plateLength;
             
+            %multiplier defaults to 1
+            if(nargin<6)
+                multiplier = 1;
+            end
             
             %make plate
             lambda = physconst('LightSpeed')./freq;
@@ -40,7 +47,7 @@ classdef chaffElt
             %divided by 1/10 so multiply by 10
             %need numcells to be the same regardless of lambda plate size,
             %so use same numcell
-            NumCells = ceil(max(plateLengthLambda)*20)
+            NumCells = ceil(max(plateLengthLambda)*10*multiplier)
             if(NumCells <10)
                 NumCells = 16
             end
