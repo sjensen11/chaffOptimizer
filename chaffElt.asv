@@ -16,44 +16,52 @@ classdef chaffElt
         phiVals %phi (azimuth) values to be swept over
         %values for plotting
         
-        %multiplier
-        multiplier %defaults to lda/10 division, can control that with this
         
     end
     
     methods
-        function obj = chaffElt(freq,plateLength,thetaVals, phiVals,loadVal,multiplier)
-            %creates chf(freq,plateLength,thetaVals, phiVals,load) load is
-            %an optional variable that loads a previously generated plate
-            %to save time
-            %multiplier: code defaults to lda/10 division, can control that with this
-            %set given values
+        function obj = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,loadVal)
+            %creates chf object, please see above for description of most
+            %of the variables
+            %NumCells (even integer): number of cells across ie) number of cells in a row
+            %           if an even integer is not choosen, codewill force 
+            %           it be (optimization code assumes it will be)                               
+            %loadVal: 1 (load from file) or 0 (calculate plate, default value) 
             obj.freq = freq;
             obj.thetaVals = thetaVals;
             obj.phiVals = phiVals;
             obj.nullPos = [];
             obj.plateLength = plateLength;
             
+                            %make plate
+                lambda = physconst('LightSpeed')./freq;
+                plateLengthLambda = plateLength./lambda; %convert to lambda
             
-            %make plate
-            lambda = physconst('LightSpeed')./freq;
-            plateLengthLambda = plateLength./lambda; %convert to lambda
-            
-            %want a minimum of lambda/10 divsion
-            %divided by 1/10 so multiply by 10
-            %need numcells to be the same regardless of lambda plate size,
-            %so use same numcell
-            NumCells = ceil(max(plateLengthLambda)*10*multiplier)
-            if(NumCells <10)
-                NumCells = 16
+            %NumCell stuff, either defaults to lda/10 or makes sure user
+            %choose a viable option
+            if(nargin<5)
+                %want a minimum of lambda/10 divsion
+                %divided by 1/10 so multiply by 10
+                %need numcells to be the same regardless of lambda plate size,
+                %so use same numcell
+                NumCells = ceil(max(plateLengthLambda)*10);
+                if(NumCells <10)
+                    NumCells = 10;
+                end
             end
+            
             if(mod(NumCells,2)) %force NumCells to be an even Number
                 NumCells = NumCells+1
             end
             
-            if(nargin>4 && loadVal) %load variable used and active (load==1)
+            if(NumCells<ceil(max(plateLengthLambda)*10))
+                error('Need more cells. Need lambda/10 division minimum')
+            end
+            
+            %load plate or not, 
+            if(nargin>5 && loadVal) %load variable used and active (load==1)
                 %this isn't fully realized and is me being lazy right now,
-                %fix this later sarah 0_0
+                %fix this later sarah
                 %I forced the values above to give 2lambda plate length...
                 %this is horrible coding practice right now because I am
                 %lazy
@@ -75,6 +83,7 @@ classdef chaffElt
                     disp('generated plate')
                 end
             end
+            %define my plates
             obj.plateFull = plate;
             obj.plateNull = plate;
             
@@ -82,8 +91,8 @@ classdef chaffElt
         end
         
  %================= get values ============================================ 
- %they should all have the same size, because numCells
- %so just use the first plate in array
+ %All frequencies should all have the same size and so numCells is
+ %same for all just use the first plate in array
  %doing it this way, because it's a little more readable (I think)
         function numElt = getNumEltFull(obj)
             %returns the number of points for the full plate
@@ -571,7 +580,7 @@ classdef chaffElt
             end
            
             numVals = 360;
-            theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
+            theta = linspace(0,2*pi,360);%linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
             freqLen = length(obj.freq);
             
             %pre-allocate matrix
@@ -581,13 +590,16 @@ classdef chaffElt
             rcsPP = zeros(freqLen,numVals);
             
             for jj = 1:freqLen
+                %get wavelength - make rcs in terms of meters not
+                %wavelength
+                lda = physconst('lightspeed')/obj.freq(jj);
                 for ii = 1:numVals
                     [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(jj).getRCSVal(theta(ii),phi);
 
-                    rcsTT(jj,ii) = rcstt;
-                    rcsPT(jj,ii) = rcstp;
-                    rcsTP(jj,ii) = rcspt;
-                    rcsPP(jj,ii) = rcspp;
+                    rcsTT(jj,ii) = rcstt*lda^2;
+                    rcsPT(jj,ii) = rcstp*lda^2;
+                    rcsTP(jj,ii) = rcspt*lda^2;
+                    rcsPP(jj,ii) = rcspp*lda^2;
 
                 end
             end
@@ -612,19 +624,23 @@ classdef chaffElt
             rcsPP = zeros(freqLen,numVals);
             
             for jj = 1:freqLen
+                %get wavelength - make rcs in terms of meters not
+                %wavelength
+                lda = physconst('lightspeed')/obj.freq(jj);
                 for ii = 1:numVals
                     [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(jj).getRCSVal(theta(ii),phi);
 
-                    rcsTT(jj,ii) = rcstt;
-                    rcsPT(jj,ii) = rcstp;
-                    rcsTP(jj,ii) = rcspt;
-                    rcsPP(jj,ii) = rcspp;
+                    rcsTT(jj,ii) = rcstt*lda^2;
+                    rcsPT(jj,ii) = rcstp*lda^2;
+                    rcsTP(jj,ii) = rcspt*lda^2;
+                    rcsPP(jj,ii) = rcspp*lda^2;
 
                 end
             end
+            
         end
         
-        function plotBiRCS(obj,phi,polar)
+        function plotBiRCS(obj,phi)
             %plots biRCS of null plate
             %defaults to polar plot
             if(nargin <3)
@@ -633,19 +649,45 @@ classdef chaffElt
             [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  obj.getBiRCSVals(phi);
             
             freqLen = length(obj.freq);
-            if(polar)
-                for ii= 1:freqLen
-                    figure;
-                    subplot(1,4,1);title('rcs_tt')
-                        polarplot(theta,10*log10(rcsTT(ii,:)));
-                    subplot(1,4,2);title('rcs_pt')
-                        polarplot(theta,10*log10(rcsPT(ii,:)));
-                    subplot(1,4,3);title('rcs_tp')
-                        polarplot(theta,10*log10(rcsTP(ii,:)));
-                    subplot(1,4,4);title('rcs_pp')
-                        polarplot(theta,10*log10(rcsPP(ii,:)));
-                end
-            else
+
+            for ii= 1:freqLen
+                figure;
+                subplot(1,4,1);title('rcs_tt')
+                    plot(theta,rcsTT(ii,:));
+                    title('RCS VV, E_{s theta}/E_{i theta}')
+                    xlabel('theta (rads)'); ylabel('bircs')
+                    
+                subplot(1,4,2);title('rcs_pt')
+                    plot(theta,rcsPT(ii,:));
+                    title('RCS HV, E_{s phi}/E_{i theta}')
+                    xlabel('theta (rads)'); ylabel('bircs')
+                    
+                subplot(1,4,3);title('rcs_tp')
+                    plot(theta,rcsTP(ii,:));
+                    title('RCS VH, E_{s theta}/E_{i phi}')
+                    xlabel('theta (rads)'); ylabel('bircs')
+                    
+                subplot(1,4,4);title('rcs_pp')
+                    plot(theta,rcsPP(ii,:));
+                    title('RCS HH, E_{s phi}/E_{i phi}')
+                    xlabel('theta (rads)'); ylabel('bircs')
+
+%                     figure;
+%                         plot(theta,10*log10(rcsTT(ii,:)));
+%                         title('RCS VV, E_{s theta}/E_{i theta}')
+%                         xlabel('angle (rads)'); ylabel('bircs (dB)')
+%                     figure;
+%                         plot(theta,10*log10(rcsPT(ii,:)));
+%                         title('RCS HV, E_{s phi}/E_{i theta}')
+%                         xlabel('angle (rads)'); ylabel('bircs (dB)')
+%                     figure;
+%                         plot(theta,10*log10(rcsTP(ii,:)));
+%                         title('RCS VH, E_{s theta}/E_{i phi}')
+%                         xlabel('angle (rads)'); ylabel('bircs (dB)')
+%                     figure;
+%                         plot(theta,10*log10(rcsPP(ii,:)));
+%                         title('RCS HH, E_{s phi}/E_{i phi}')
+%                         xlabel('angle (rads)'); ylabel('bircs (dB)')
             end
         end
         %------------------mono rcs -------------
@@ -673,14 +715,17 @@ classdef chaffElt
             rcsPP = zeros(freqLen,numVals);
             
             for jj = 1:length(obj.freq)
+                %get wavelength - make rcs in terms of meters not
+                %wavelength
+                lda = physconst('lightspeed')/obj.freq(jj);
                 for ii = 1:numVals
                     plateN = obj.plateNull(jj).changeEinc(phi,theta(ii));
                     [rcstt,rcstp,rcspt,rcspp] = plateN.getRCSVal(theta(ii),phi);
 
-                    rcsTT(jj,ii) = rcstt;
-                    rcsPT(jj,ii) = rcstp;
-                    rcsTP(jj,ii) = rcspt;
-                    rcsPP(jj,ii) = rcspp;
+                    rcsTT(jj,ii) = rcstt*lda^2;
+                    rcsPT(jj,ii) = rcstp*lda^2;
+                    rcsTP(jj,ii) = rcspt*lda^2;
+                    rcsPP(jj,ii) = rcspp*lda^2;
 
                 end
             end
@@ -711,14 +756,17 @@ classdef chaffElt
             rcsPP = zeros(freqLen,thetaLen);
             
             for jj = 1:length(obj.freq)
+                %get wavelength - make rcs in terms of meters not
+                %wavelength
+                lda = physconst('lightspeed')/obj.freq(jj);
                 for ii = 1:thetaLen
                     plateN = obj.plateNull(jj).changeEinc(phi,theta(ii));
                     [rcstt,rcstp,rcspt,rcspp] = plateN.getRCSVal(theta(ii),phi);
 
-                    rcsTT(jj,ii) = rcstt;
-                    rcsPT(jj,ii) = rcstp;
-                    rcsTP(jj,ii) = rcspt;
-                    rcsPP(jj,ii) = rcspp;
+                    rcsTT(jj,ii) = rcstt*lda^2;
+                    rcsPT(jj,ii) = rcstp*lda^2;
+                    rcsTP(jj,ii) = rcspt*lda^2;
+                    rcsPP(jj,ii) = rcspp*lda^2;
 
                 end
             end
@@ -746,14 +794,17 @@ classdef chaffElt
             rcsPP = zeros(freqLen,numVals);
             
             for jj = 1:length(obj.freq)
+                %get wavelength - make rcs in terms of meters not
+                %wavelength
+                lda = physconst('lightspeed')/obj.freq(jj);
                 for ii = 1:numVals
                     plateF = obj.plateFull(jj).changeEinc(phi,theta(ii));
                     [rcstt,rcstp,rcspt,rcspp] = plateF.getRCSVal(theta(ii),phi);
 
-                    rcsTT(jj,ii) = rcstt;
-                    rcsPT(jj,ii) = rcstp;
-                    rcsTP(jj,ii) = rcspt;
-                    rcsPP(jj,ii) = rcspp;
+                    rcsTT(jj,ii) = rcstt*lda^2;
+                    rcsPT(jj,ii) = rcstp*lda^2;
+                    rcsTP(jj,ii) = rcspt*lda^2;
+                    rcsPP(jj,ii) = rcspp*lda^2;
 
                 end
             end
@@ -765,7 +816,7 @@ classdef chaffElt
             if(nargin <3)
                 polar = 1;
             end
-            [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSVals(obj,phi);
+            [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  obj.getMonoRCSVals(phi);
             freqLen = length(obj.freq);
             
             if(polar)

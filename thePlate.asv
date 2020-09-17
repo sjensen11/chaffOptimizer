@@ -139,11 +139,10 @@ classdef thePlate
             %there are 2 random /pi both inside sinc( ) and outside because
             %matlab defines sinc(x) = sin(pi x)/pi x and I want 
             %calculate theta first
-                            
             ex_theta = del * (cos(thetaLoc)*cos(phiLoc))...
                            * sinc(del*sin(thetaLoc)*cos(phiLoc))...
                            * exp(1j*kk*(obj.Bxn_xx*sin(thetaLoc)*cos(phiLoc)...
-                                       +obj.Bxn_yy*sin(thetaLoc)*sin(phiLoc)));
+                                     +obj.Bxn_yy*sin(thetaLoc)*sin(phiLoc)));
             ey_theta =del * (cos(thetaLoc)*sin(phiLoc))...
                           * sinc(del*sin(thetaLoc)*sin(phiLoc))...
                           * exp(1j*kk*(obj.Byn_xx*sin(thetaLoc)*cos(phiLoc)...
@@ -270,6 +269,7 @@ classdef thePlate
             obj.JJ_phi = obj.JJ_phi/obj.scaleFactor;
         end %of function generateMatrix
         
+        
 
         function obj = changeEinc(obj,phiInc,thetaInc)
             %use to update the angle of the incident field and resolve for
@@ -296,7 +296,7 @@ classdef thePlate
             ex_theta = del * (cos(thetaLoc)*cos(phiLoc))...
                               * sinc(del*sin(thetaLoc)*cos(phiLoc))...
                               * exp(1j*kk*(obj.Bxn_xx*sin(thetaLoc)*cos(phiLoc)...
-                                          +obj.Bxn_yy*sin(thetaLoc)*sin(phiLoc)));
+                                       +obj.Bxn_yy*sin(thetaLoc)*sin(phiLoc)));
             ey_theta =del * (cos(thetaLoc)*sin(phiLoc))...
                           * sinc(del*sin(thetaLoc)*sin(phiLoc))...
                           * exp(1j*kk*(obj.Byn_xx*sin(thetaLoc)*cos(phiLoc)...
@@ -306,11 +306,11 @@ classdef thePlate
             ex_phi = del * (-sin(phiLoc))...
                          * sinc(del*sin(thetaLoc)*cos(phiLoc))...
                          * exp(1j*kk*(obj.Bxn_xx*sin(thetaLoc)*cos(phiLoc)...
-                                     +obj.Bxn_yy*sin(thetaLoc)*sin(phiLoc)));
+                                 +obj.Bxn_yy*sin(thetaLoc)*sin(phiLoc)));
             ey_phi = del * (cos(phiLoc))...
                         * sinc(del*sin(thetaLoc)*sin(phiLoc))...
                         * exp(1j*kk*(obj.Byn_xx*sin(thetaLoc)*cos(phiLoc)...
-                                    +obj.Byn_yy*sin(thetaLoc)*sin(phiLoc)));
+                                 +obj.Byn_yy*sin(thetaLoc)*sin(phiLoc)));
             %---- get ZZ --------
             %this is right so want to save it 0_0
 %             ex = del * (cos(thetaLoc)*cos(phiLoc)-sin(phiLoc))...
@@ -368,14 +368,11 @@ classdef thePlate
         end
 %         
         
-        function [theta,rcs_tt,rcs_tp,rcs_pt,rcs_pp] = plotRCS(obj,phi,dBOn)
+        function [theta,rcs_tt,rcs_tp,rcs_pt,rcs_pp] = plotRCS(obj,phi)
             %plots rcs (dB) vs theta given a certain scatter angle phi
             %then retursn values, t = theta, p = phi. First subscript is
             %the scattered field, second is the current
-            if(nargin<3)
-                %defaults to plotting in dB
-                dBOn = 1;
-            end
+            
             numVals = 360;
             theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
             rcs_tt = zeros(1,numVals);
@@ -386,39 +383,21 @@ classdef thePlate
             for ii = 1:numVals
                 [rcs_tt(ii),rcs_tp(ii),rcs_pt(ii),rcs_pp(ii)] = obj.getRCSVal(theta(ii),phi);
             end
-            if(dBOn)
                 figure;plot(theta,10*log10(rcs_tt))
-                    title('RCS VV, E_{s theta}/E_{i theta}')
-                    ylim([min(10*log10(rcs_tt)),max(10*log10(rcs_tt))])
+                title('RCS VV, E_{s theta}/E_{i theta}')
+                ylim([min(10*log10(rcs_tt)),max(10*log10(rcs_tt))])
 
                 figure;plot(theta,10*log10(rcs_tp))
-                    title('RCS VH, E_{s theta}/E_{phi}')
-                    ylim([min(10*log10(rcs_tp)),max(10*log10(rcs_tp))])
+                title('RCS VH, E_{s theta}/E_{phi}')
+                ylim([min(10*log10(rcs_tp)),max(10*log10(rcs_tp))])
 
                 figure;plot(theta,10*log10(rcs_pt))
-                    title('RCS HV, E_{s phi}/E_{i theta}')
-                    ylim([min(10*log10(rcs_pt)),max(10*log10(rcs_pt))])
+                title('RCS HV, E_{s phi}/E_{i theta}')
+                ylim([min(10*log10(rcs_pt)),max(10*log10(rcs_pt))])
 
                 figure;plot(theta,10*log10(rcs_pp))
-                    title('RCS Hh, E_{s phi}/E_{i phi}')
-                    ylim([min(10*log10(rcs_pp)),max(10*log10(rcs_pp))])
-            else
-                figure;plot(theta,rcs_tt)
-                    title('RCS VV, E_{s theta}/E_{i theta}')
-                    ylim([min(rcs_tt),max(rcs_tt)])
-
-                figure;plot(theta,rcs_tp)
-                    title('RCS VH, E_{s theta}/E_{phi}')
-                    ylim([min(rcs_tp),max(rcs_tp)])
-
-                figure;plot(theta,rcs_pt)
-                    title('RCS HV, E_{s phi}/E_{i theta}')
-                    ylim([min(rcs_pt),max(rcs_pt)])
-
-                figure;plot(theta,rcs_pp)
-                    title('RCS Hh, E_{s phi}/E_{i phi}')
-                    ylim([min(rcs_pp),max(rcs_pp)])
-            end
+                title('RCS Hh, E_{s phi}/E_{i phi}')
+                ylim([min(10*log10(rcs_pp)),max(10*log10(rcs_pp))])
             
 %             %polor plot - rcsTheta
 %             rcsdB = 10*log10(rcs_theta);
@@ -745,9 +724,8 @@ classdef thePlate
 
             figure;subplot(1,2,1);
             imagesc(XX(1,:),YY(1,:),abs(JJMat))
-
             title(['J_{tx} phiInc = ',num2str(obj.phiInc)]);
-            xlabel('x - wavelength'); ylabel('y - wavelength')
+            xlabel('x'); ylabel('y')
             
             %plot Jy
             yup = length(obj.Bxn_xx); %to get to Jy components
@@ -764,7 +742,7 @@ classdef thePlate
             subplot(1,2,2);
             imagesc(XX(1,:),YY(1,:),abs(JJMat))
             title(['J_{ty} phiInc = ',num2str(obj.phiInc)]);
-            xlabel('x - wavelength'); ylabel('y - wavelength')
+            xlabel('x'); ylabel('y')
             
             %plot JJ_phi next
                         %plot Jx
@@ -783,7 +761,7 @@ classdef thePlate
             figure;subplot(1,2,1);
             imagesc(XX(1,:),YY(1,:),abs(JJMat))
             title(['J_{px} phiInc = ',num2str(obj.phiInc)]);
-            xlabel('x - wavelength'); ylabel('y - wavelength')
+            xlabel('x'); ylabel('y')
             
             %plot Jy
             yup = length(obj.Bxn_xx); %to get to Jy components
@@ -800,7 +778,7 @@ classdef thePlate
             subplot(1,2,2);
             imagesc(XX(1,:),YY(1,:),abs(JJMat))
             title(['J_{py} phiInc = ',num2str(obj.phiInc)]);
-            xlabel('x - wavelength'); ylabel('y - wavelength')
+            xlabel('x'); ylabel('y')
 
         end
         
