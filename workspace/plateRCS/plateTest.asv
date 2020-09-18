@@ -84,3 +84,6 @@ figure;plot(theta*180/pi,rcs_tt*lda^2)
 title('RCS VV , E_{s theta}/E_{i theta} SCALED')
 xlim([0 90]);
 xlabel('theta (deg)'); ylabel('bircs m^2')
+
+%% plate 2lda
+%creating a 2lda plate to play with, want to get plate, optimize

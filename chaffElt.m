@@ -54,7 +54,7 @@ classdef chaffElt
                 NumCells = NumCells+1
             end
             
-            if(NumCells<=ceil(max(plateLengthLambda)*10))
+            if(NumCells<ceil(max(plateLengthLambda)*10))
                 error('Need more cells. Need lambda/10 division minimum')
             end
             

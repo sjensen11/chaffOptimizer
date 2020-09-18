@@ -84,3 +84,18 @@ figure;plot(theta*180/pi,rcs_tt*lda^2)
 title('RCS VV , E_{s theta}/E_{i theta} SCALED')
 xlim([0 90]);
 xlabel('theta (deg)'); ylabel('bircs m^2')
+
+%% plate 2lda
+%creating a 2lda plate to play with, want to get plate, and test averaging
+%stuff
+freq = 8*10^9;
+lda = physconst('lightspeed')/freq;
+thetaVals = 0;
+phiVals = 0;
+
+plateLength = 2*lda;
+
+chf20 = chaffElt(freq,plateLength,thetaVals, phiVals);
+
+%% optimize stuff
+chf20.maximizeRCSAvgSymmPatternSearch(1)

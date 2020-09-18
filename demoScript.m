@@ -37,7 +37,7 @@ chf = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells);
 
 %plots monostatic RCS in cartesian grid with theta and phi as the axes
 dbOn = 0; %plot raw values
-chf.plotMonoFlat(obj,dbOn)
+chf.plotMonoFlat(dbOn)
 
 %plots bistatic RCS at at scattering angle. Theta is the x-axis
 %generates 4 graphs for each incident polarization vs scattering
