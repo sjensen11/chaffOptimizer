@@ -433,7 +433,7 @@ classdef chaffElt
             rcsOneFreq = 0;
             
             for pp = 1:freqLen %walk through frequencies
-                
+                lda = physconst('lightspeed')/obj.freq(pp);
                 %walk through the frequencies
                 for ii = 1:numThetaAngles
                     for jj = 1:numPhiAngles
@@ -444,18 +444,20 @@ classdef chaffElt
                         
                         %get rcs
                         [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(pp).getRCSVal(thetaLoc(ii),phiLoc(jj));
-                        rcsOneFreq =rcsOneFreq+ (rcstt+rcspp)/2;
+%                         rcsOneFreq =rcsOneFreq+ (rcstt+rcspp)/2;
+                        rcsOneFreq = rcsOneFreq+ (rcstt+rcspp);
+                        
                     end
-                    
-                    %average over angles 
-                    rcsAvg =rcsAvg+ rcsOneFreq/(length(thetaLoc)*length(phiLoc));
-                    
-                    %reset rcsOneFreq for next frequency
+                    %doing it this way so only have to multiply by lda^2 at
+                    %the end
+                    rcsAvg =rcsAvg+lda^2*rcsOneFreq; %just add and divide at the end
                     rcsOneFreq = 0;
                 end
                 
             end
-            rcsAvg = rcsAvg/freqLen;
+            %divide by number of elements added to rcsAvg for average
+            %2 for rcstt and rcspp, freqLen: # of frequencies, 
+            rcsAvg = rcsAvg/2*freqLen*numThetaAngles*numPhiAngles;
 
         end
         
@@ -959,6 +961,7 @@ classdef chaffElt
             %get frequency length
             freqLen = length(obj.freq);
             for currPlate = 1:freqLen
+                lda = physconst('lightspeed')/obj.freq(currPlate);
                 for ii= 1:length(phi)
                     for jj = 1:length(theta)
                         %change incident field
@@ -967,14 +970,14 @@ classdef chaffElt
                         plateF = obj.plateFull(currPlate).changeEinc(phi(jj),theta(ii));
                         [rcstt,rcstp,rcspt,rcspp] = plateF.getRCSVal(theta(ii),phi(jj));
 
-                        rcsFullTT(ii,jj) = rcstt; 
-                        rcsFullPP(ii,jj) = rcspp;
+                        rcsFullTT(ii,jj) = rcstt*lda^2; 
+                        rcsFullPP(ii,jj) = rcspp*lda^2;
                         
                         %get null plate info next
                         plateN = obj.plateNull(currPlate).changeEinc(phi(jj),theta(ii));
                         [rcstt,rcstp,rcspt,rcspp] = plateN.getRCSVal(theta(ii),phi(jj));
-                        rcsNullTT(ii,jj) = rcstt; 
-                        rcsNullPP(ii,jj) = rcspp;
+                        rcsNullTT(ii,jj) = rcstt*lda^2; 
+                        rcsNullPP(ii,jj) = rcspp*lda^2;
                     end
                 end
                 
@@ -1096,69 +1099,66 @@ classdef chaffElt
         end
 
         
-        function [avgRCSNull, avgRCSFull, perfDif] = compareRCS(obj,numVals)
+        function [perfDif,rcsAvgNull, rcsAvgFull] = compareRCS(obj,numVals)
             %plots the rcs of null plate and the full plate
             %dbOn - plots in dB, defaults to off
             if(nargin<2)
                 %defaults to 180 points in phi and theta
                 numVals = 180;
             end
-            phi = linspace(0,pi/2,numVals);
-            theta = linspace(0,pi/2,numVals);
-            %this is horrible coding, but I know theta from 
-            %get rcs values for null plate and full plate
+            %Loc = local... copied code from elsewhere in code and kept
+            %convention
+            phiLoc = 0;linspace(0,pi/2,numVals);
+            thetaLoc = 0;linspace(0,pi/2,numVals);
             
-            %preallocate plates
-            rcsFullTT = zeros(numVals);
-            rcsFullPP = zeros(numVals);
-            rcsNullTT = zeros(numVals) ;
-            rcsNullPP = zeros(numVals) ;
-            
-            rcsFullTot = zeros(numVals) ;
-            rcsNullTot = zeros(numVals) ;
-            
-            %make grid for mesh
-            TT = repmat(theta,numVals,1);
-            PP = repmat(phi.',1,numVals);
-            
+            numThetaAngles = length(thetaLoc);
+            numPhiAngles = length(phiLoc);
             %get frequency length
             freqLen = length(obj.freq);
-            for currPlate = 1:freqLen
-                for ii= 1:length(phi)
-                    for jj = 1:length(theta)
-                        %change incident field
-                        obj = obj.changeEinc(phi(ii),theta(ii));
-                        %get full plate info first
-                        plateF = obj.plateFull(currPlate).changeEinc(phi(jj),theta(ii));
-                        [rcstt,rcstp,rcspt,rcspp] = plateF.getRCSVal(theta(ii),phi(jj));
-
-                        rcsFullTT(ii,jj) = rcstt; 
-                        rcsFullPP(ii,jj) = rcspp;
+            
+            %initalize some stuff
+            rcsOneFreqNull = 0;
+            rcsAvgNull = 0;
+            
+            rcsOneFreqFull = 0;
+            rcsAvgFull =0;
+            
+            for pp = 1:freqLen %walk through frequencies
+                lda = physconst('lightspeed')/obj.freq(pp);
+                %walk through the frequencies
+                for ii = 1:numThetaAngles
+                    for jj = 1:numPhiAngles
+                        obj = obj.changeEinc(phiLoc(jj),thetaLoc(ii))
+                        %get rcs Null Plate
+                        [rcstt,rcstp,rcspt,rcspp] = obj.plateNull(pp).getRCSVal(thetaLoc(ii),phiLoc(jj));
+                        rcsOneFreqNull = rcsOneFreqNull+ (rcstt+rcspp);
                         
-                        %get null plate info next
-                        plateN = obj.plateNull(currPlate).changeEinc(phi(jj),theta(ii));
-                        [rcstt,rcstp,rcspt,rcspp] = plateN.getRCSVal(theta(ii),phi(jj));
-                        rcsNullTT(ii,jj) = rcstt; 
-                        rcsNullPP(ii,jj) = rcspp;
+                        %get rcs Full plate
+                        [rcstt,rcstp,rcspt,rcspp] = obj.plateFull(pp).getRCSVal(thetaLoc(ii),phiLoc(jj));
+                        rcsOneFreqFull = rcsOneFreqFull+ (rcstt+rcspp);
                     end
+                    %doing it this way so only have to multiply by lda^2 at
+                    %the end
+                    rcsAvgNull =rcsAvgNull+lda^2*rcsOneFreqNull; %just add and divide at the end
+                    rcsOneFreqNull = 0;
+                    
+                    rcsAvgFull =rcsAvgFull+lda^2*rcsOneFreqFull; %just add and divide at the end
+                    rcsOneFreqFull = 0;
                 end
-                
-                %plot theta-theta polarization first
-                rcsNullTot = rcsNullTot + rcsNullTT+rcsNullPP;
-                rcsFullTot = rcsFullTot + rcsFullTT+rcsFullPP;
-                
             end
-
-            avgRCSNull = sum(sum(rcsNullTot))/numel(rcsNullTot);
-            avgRCSFull = sum(sum(rcsFullTot))/numel(rcsFullTot);
+            rcsAvgFull =rcsAvgFull/ 2*freqLen*numThetaAngles*numPhiAngles;
+            rcsAvgNull =rcsAvgNull/ 2*freqLen*numThetaAngles*numPhiAngles;
+            disp(['rcs_avg,Full = ' num2str(rcsAvgFull)])
+            disp(['rcs_avg,Null = ' num2str(rcsAvgNull)])
             
             %calculate percent difference
-            diff = abs(avgRCSNull-avgRCSFull);
-            avgT = (avgRCSNull+avgRCSFull)/2;
+            diff = abs(rcsAvgFull-rcsAvgNull);
+            avgT = (rcsAvgFull+rcsAvgNull)/2;
             perfDif = diff/avgT;
         end
         
         function [perfDif,avgRCSNull,avgRCSFull] = compareRCSTestedPoints(obj)
+            %DOESN'T WORK FIX THIS!!
             %looks at the average RCS over defined range and sees if it
             %improved
             %This should return the same thing the optimizer sees, so we're

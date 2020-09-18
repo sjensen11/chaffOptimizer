@@ -94,8 +94,17 @@ thetaVals = 0;
 phiVals = 0;
 
 plateLength = 2*lda;
-
-chf20 = chaffElt(freq,plateLength,thetaVals, phiVals);
-
+NumCells = 25;
+chf25 = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells);
+%% want to look at RCS of just plate
+phiScat = 0;
+chf20.plotBiRCS(phiScat)
+dbOn = 0;
+chf20.plotMonoFlat(dbOn)
 %% optimize stuff
-chf20.maximizeRCSAvgSymmPatternSearch(1)
+% [chf20Nulled,pointsOnFull,RCSavg] = chf20.maximizeRCSAvgSymm();
+[chf25Nulled,pointsOnFull,RCSavg] = chf20.maximizeRCSAvgSymmPatternSearch(1)
+
+%% check different pointsOn
+pointsOn = ones(1,169);
+chf25.null2minRCSAvgQuarter(pointsOn)
