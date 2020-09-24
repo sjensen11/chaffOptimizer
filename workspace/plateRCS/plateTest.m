@@ -90,11 +90,11 @@ xlabel('theta (deg)'); ylabel('bircs m^2')
 %stuff
 freq = 8*10^9;
 lda = physconst('lightspeed')/freq;
-thetaVals = 0;
-phiVals = 0;
+thetaVals = linspace(0,pi/2,5);
+phiVals = linspace(0,pi/2,5);
 
 plateLength = 2*lda;
-NumCells = 25;
+NumCells = 20;
 chf25 = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells);
 %% want to look at RCS of just plate
 phiScat = 0;
@@ -103,8 +103,9 @@ dbOn = 0;
 chf20.plotMonoFlat(dbOn)
 %% optimize stuff
 % [chf20Nulled,pointsOnFull,RCSavg] = chf20.maximizeRCSAvgSymm();
-[chf25Nulled,pointsOnFull,RCSavg] = chf20.maximizeRCSAvgSymmPatternSearch(1)
+[chf20Nulled,pointsOnFull,RCSavg] = chf20.maximizeRCSAvgSymmPatternSearch(1)
 
 %% check different pointsOn
 pointsOn = ones(1,169);
-chf25.null2minRCSAvgQuarter(pointsOn)
+chf20.null2minRCSAvgQuarter(pointsOn)
+
