@@ -95,7 +95,7 @@ phiVals = linspace(0,pi/2,5);
 
 plateLength = 2*lda;
 NumCells = 20;
-chf25 = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells);
+chf20 = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells);
 %% want to look at RCS of just plate
 phiScat = 0;
 chf20.plotBiRCS(phiScat)

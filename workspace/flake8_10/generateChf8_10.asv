@@ -24,12 +24,8 @@ pixelSize = 10;
 chf = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,pixelSize);
 
 %% playing with nullPixel
-
-nullPlot = randi([0,1],4);
-nullPlot = [0 1 1 1;...
-            1 1 1 1;...
-            1 1 1 1;...
-            1 1 1 1];
+close all
+nullPlot = randi([0,1],4)
 [row,col]=find(nullPlot==0)
 nullPos = [row,col];
 chf = chf.nullPixels(nullPos)

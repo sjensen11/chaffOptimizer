@@ -1,9 +1,24 @@
+%% finding submatrix
+A = randi([0 1],10) 
+B =  [1 0; 0 1]
+% engine
+szA = size(A) ;
+szB = size(B) ;
+szS = szA - szB + 1 
+tf = false(szA) ;
+for r = 1:szS(1)
+    for c = 1:szS(2)
+        tf(r,c) = isequal(A(r:r+szB(1)-1,c:c+szB(2)-1),B) ;
+    end
+end
+[rout,cout] = find(tf)
+
 %% calculating percentage difference
-V1 = 18.01;
-V2 = 9.59
-diff = V1-V2;
-avg = (V1+V2)/2
-perfDiff = diff/avg
+% V1 = 18.01;
+% V2 = 9.59
+% diff = V1-V2;
+% avg = (V1+V2)/2
+% perfDiff = diff/avg
 %% figuring out ploting
 % numVals = 5;
 % theta = linspace(-pi/2,pi/2,numVals)

@@ -11,22 +11,31 @@ classdef chaffElt
         plateNull %contains solutions with edges removed
         nullPos %matrix with row/col positions -> [r1,c1;r2,c2;...]
         
+        %pixels stuff
+        %ex) a plate with 10 cell division could have pixelSize 2, so would
+        %have 5 pixels. The pixels are what can be turned on or off
+        pixelSize %number of cells in each pixel
+        numPixels %number of pixels on plate
+        
         %angle sweep
         thetaVals %theta (elevation) Values to be swept over
         phiVals %phi (azimuth) values to be swept over
         %values for plotting
         
+        %
+        
         
     end
     
     methods
-        function obj = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,loadVal)
+        function obj = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,pixelSize)
             %creates chf object, please see above for description of most
             %of the variables
             %NumCells (even integer): number of cells across ie) number of cells in a row
             %           if an even integer is not choosen, codewill force 
             %           it be (optimization code assumes it will be)                               
-            %loadVal: 1 (load from file) or 0 (calculate plate, default value) 
+            %pixelSize: number of cells in a single pixel, ie) object is 40
+            %           40 cells accross and each pixel is 10 in size
             obj.freq = freq;
             obj.thetaVals = thetaVals;
             obj.phiVals = phiVals;
@@ -48,6 +57,7 @@ classdef chaffElt
                 if(NumCells <10)
                     NumCells = 10;
                 end
+                obj.pixelSize = 1;
             end
             
             if(mod(NumCells,2)) %force NumCells to be an even Number
@@ -58,39 +68,44 @@ classdef chaffElt
                 error('Need more cells. Need lambda/10 division minimum')
             end
             
-            %load plate or not, 
-            if(nargin>5 && loadVal) %load variable used and active (load==1)
-                %this isn't fully realized and is me being lazy right now,
-                %fix this later sarah
-                %I forced the values above to give 2lambda plate length...
-                %this is horrible coding practice right now because I am
-                %lazy
-                disp('this really only works for one freq... should update')
-                disp(['plate length is ' num2str(plateLengthLambda)])
-%                 disp(['what do you want to load? recomend plate' num2str(ceil(plateLengthLambda)*10)]) 
-                loadPlate = input(['what do you want to load? recomend plate' num2str(ceil(plateLengthLambda)*10) ' '],'s');
-                load(loadPlate); %gets plateLoad out of file
-               	plate = plateLoad;
-                disp([loadPlate ' loaded'])
-            else
-                plate = []; %set up plate
-                for ii = 1:length(freq) %walk through frequencies
-                    
-                    %make plate and set plateFull and plateNull
-                    plateTemp = thePlate(NumCells, plateLengthLambda(ii) ,0,0); %set original incident angles to zero
+            %generate plates
+            plate = []; %set up plate
+            for ii = 1:length(freq) %walk through frequencies
 
-                    plate = [plate plateTemp.generateMatrix()]; %store in matrix
-                    disp('generated plate')
-                end
+                %make plate and set plateFull and plateNull
+                plateTemp = thePlate(NumCells, plateLengthLambda(ii) ,0,0); %set original incident angles to zero
+
+                plate = [plate plateTemp.generateMatrix()]; %store in matrix
+                disp('generated plate')
             end
+
             %define my plates
             obj.plateFull = plate;
             obj.plateNull = plate;
             
             disp('chaff made')
+            
+                                  
+            %pixel stuff
+            if(nargin<6) %pixel size not set by user, default to 1 
+               pixelSize = 1;
+            end
+            pixelNum = NumCells/pixelSize;
+            if(pixelNum~=floor(pixelNum))
+            	%makes sure pixelNum is an integer, because you can't have
+            	%.1 of a cell :P
+                %update pixelSize next integer number of cells up
+                pixelNum = ceil(pixelNum);
+                pixelSize = NumCells/pixelNum;
+                disp(['pixelSize lead to non-integer number of pixels cells,'...
+                      ' updated to pixelSize: ' num2str(pixelSize)]);
+                    
+            end
+            obj.pixelSize = pixelSize; %set pixelSize
+            obj.numPixels = pixelNum;
         end
         
- %================= get values ============================================ 
+ %% ================= get values ============================================ 
  %All frequencies should all have the same size and so numCells is
  %same for all just use the first plate in array
  %doing it this way, because it's a little more readable (I think)
@@ -121,12 +136,68 @@ classdef chaffElt
         function numCells = getNumCellsFull(obj)
             numCells = obj.plateFull(1).NumCells^2;
         end
-%===================== nulling fun ========================================
+%% ===================== nulling fun ========================================
         function obj = removeNulls(obj)
             %used to remove null positions... should return to just metal
             %sheets
             obj.plateNull = obj.plateFull;
             obj.nullPos = [];
+        end
+        function obj = nullPixels(obj,nullPixel)
+            %will remove pixels by finding the corresponding cell position
+            %and feeding that into nullNew (which removes edges). Wrote
+            %like this, because nullNew came first
+            %expect in form nullPixel = [row col]
+            
+            %go from pixels->cell position
+            %going to start by just finding everything then remove what 
+            % things for wierd corner pieces
+            nullPos = [];
+            for ii = 1:size(nullPixel,1)
+                %walk through each position
+                rowPos = 1+obj.pixelSize *(nullPixel(ii,1)-1);
+                colPos = 1+obj.pixelSize *(nullPixel(ii,2)-1);
+                
+                for jj =0:obj.pixelSize
+                    addRow = [rowPos:rowPos+obj.pixelSize-1].';
+                    addCol = (jj+colPos)*ones(obj.pixelSize,1);
+                    nullPos = [nullPos; addRow,addCol]
+                end
+            end
+            %turn into matrix with 0 and 1's...easier to find corners
+            nullPlot = ones(obj.numPixels);
+            for ii = 1:size(nullPixel,1)
+                row = nullPixel(ii,1); col = nullPixel(ii,2);
+                nullPlot(row,col) = 0;
+            end
+            %find first type of corner
+            %returns the smaller integer location ie) 1,1 wins 
+            cornerMat =  [0 1; 1 0];%[1 0; 0 1];
+            
+            [rout,cout]= obj.findSubMatrix(nullPlot,cornerMat);
+            %what do I want to remove? going to play with corner right now           
+            row_remove = obj.pixelSize*rout;
+            col_remove = obj.pixelSize*cout;
+            %find in nullPos
+            for ii = 1: size(row_remove,1)
+                [rout,cout] = obj.findSubMatrix(nullPos,[row_remove(ii),col_remove(ii)]);
+%                 nullPos(rout,:) = [];
+            end
+            
+            %deal with the other type 
+            cornerMat =  [1 0; 0 1];
+            
+            [rout,cout]= obj.findSubMatrix(nullPlot,cornerMat);
+            %what do I want to remove? going to play with corner right now           
+            row_remove = obj.pixelSize*rout+1;
+            col_remove = obj.pixelSize*cout;
+            %find in nullPos
+            for ii = 1: length(row_remove)
+                [rout,cout] = obj.findSubMatrix(nullPos,[row_remove(ii),col_remove(ii)]);
+%                 nullPos(rout,:) = [];
+            end
+%             obj = obj.nullNew(nullPos);
+            
         end
         function obj = nullNew(obj,nullPos)
             %keep the same full plate, but null new values (ie, doesn't
@@ -374,7 +445,7 @@ classdef chaffElt
                 end
             end
         end
-%================= playing with Einc =================================      
+%% ================= playing with Einc =================================      
 
         function obj = changeEinc(obj,phiInc,thetaInc)
             %change Einc on both the null plate and full plate
@@ -389,7 +460,7 @@ classdef chaffElt
         
         
         
-%================= stuff for optimization =================================            
+%% ================= stuff for optimization =================================            
         function obj = nullNewFromOneArray(obj,xx)
             %nulls based off the [0/1] array found from null2minRCS ga
             %function
@@ -482,7 +553,7 @@ classdef chaffElt
             %plot=0 no plot, plot=1 plot dB, plot = 2 plot RCS normal
             [phi,rcs] = obj.plateNull.getRCS(theta,plot);
         end
-%======================== optimize code ===================================        
+%% ======================== optimize code ===================================        
         function [chfNulled,pointsOnVal,RCSavg] = maximizeRCSAvg(obj)
             %runs the genetic algorithm code... the range of angles can be
             %found in chf.null2minRCSAvg
@@ -507,7 +578,7 @@ classdef chaffElt
 
             chfNulled = obj.nullNewFromOneArray(pointsOnVal); 
         end
-%==========================================================================
+%% ==========================================================================
         function [chfNulled,pointsOnFull,RCSavg] = maximizeRCSAvgSymm(obj)
             %runs the genetic algorithm code... the range of angles can be
             %found in chf.null2minRCSAvg
@@ -571,7 +642,7 @@ classdef chaffElt
             %return nulled chaff
             chfNulled = obj.nullNewFromOneArray(pointsOnFull); 
         end
-%======================= plot RCS stuff ===================================
+%% ======================= plot RCS stuff ===================================
         function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getBiRCSVals(obj,phi)
             %returns the bistatic radar cross-section... rows are each
             %individual frequency ie) rcsNull(1) is the first plate
@@ -1680,6 +1751,21 @@ classdef chaffElt
             fullArray = reshape(fullMat,1,NumCells^2);
         end
         
+        function [rout,cout]= findSubMatrix(A,B)
+            %use this to find a submatrix B in a larger matrix A
+            % engine
+            szA = size(A) ;
+            szB = size(B) ;
+            szS = szA - szB + 1 
+            tf = false(szA) ;
+            for r = 1:szS(1)
+                for c = 1:szS(2)
+                    tf(r,c) = isequal(A(r:r+szB(1)-1,c:c+szB(2)-1),B) ;
+                end
+            end
+            [rout,cout] = find(tf)
+        end
+
 
         
     end
