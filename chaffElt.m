@@ -152,16 +152,16 @@ classdef chaffElt
             %go from pixels->cell position
             %going to start by just finding everything then remove what 
             % things for wierd corner pieces
-            nullPos = [];
+            nullPosLoc = [];
             for ii = 1:size(nullPixel,1)
                 %walk through each position
                 rowPos = 1+obj.pixelSize *(nullPixel(ii,1)-1);
                 colPos = 1+obj.pixelSize *(nullPixel(ii,2)-1);
                 
-                for jj =0:obj.pixelSize
+                for jj =0:obj.pixelSize-1
                     addRow = [rowPos:rowPos+obj.pixelSize-1].';
                     addCol = (jj+colPos)*ones(obj.pixelSize,1);
-                    nullPos = [nullPos; addRow,addCol]
+                    nullPosLoc = [nullPosLoc; addRow,addCol];
                 end
             end
             %turn into matrix with 0 and 1's...easier to find corners
@@ -180,8 +180,8 @@ classdef chaffElt
             col_remove = obj.pixelSize*cout;
             %find in nullPos
             for ii = 1: size(row_remove,1)
-                [rout,cout] = obj.findSubMatrix(nullPos,[row_remove(ii),col_remove(ii)]);
-%                 nullPos(rout,:) = [];
+                [rout,cout] = obj.findSubMatrix(nullPosLoc,[row_remove(ii),col_remove(ii)]);
+                nullPosLoc(rout,:) = [];
             end
             
             %deal with the other type 
@@ -193,10 +193,10 @@ classdef chaffElt
             col_remove = obj.pixelSize*cout;
             %find in nullPos
             for ii = 1: length(row_remove)
-                [rout,cout] = obj.findSubMatrix(nullPos,[row_remove(ii),col_remove(ii)]);
-%                 nullPos(rout,:) = [];
+                [rout,cout] = obj.findSubMatrix(nullPosLoc,[row_remove(ii),col_remove(ii)]);
+                nullPosLoc(rout,:) = [];
             end
-%             obj = obj.nullNew(nullPos);
+            obj = obj.nullNew(nullPosLoc);
             
         end
         function obj = nullNew(obj,nullPos)
@@ -482,14 +482,13 @@ classdef chaffElt
             %   ie) (rcs_tt+rcs_tp+rcs_pt+rcs_pp)/4 where p=phi, t = theta
 
             %-----Null Plate----------
-            NumCells = obj.getNumCellsRow();
             %xx is a series of zeros and one, zero means null that position
-            [row,col] = obj.array2rowcol(xx, NumCells);
-            nullpos = [row' col'];
+            [row,col] = obj.array2rowcol(xx, obj.numPixels);
+            nullPixels = [row' col'];
 
             %walk through frequencies
             freqLen = length(obj.freq);
-            obj = obj.nullNew(nullpos);
+            obj = obj.nullPixels(nullPixels);
 
             %---get monoRCS at various points-------------
             %get angles to walk over
@@ -540,8 +539,7 @@ classdef chaffElt
             %tries to do some symmettry magic
             
             %take the one quarter and make into the full array
-            NumCells= obj.getNumCellsRow;
-            fullArray = obj.quarter2FullArray(xxQuarter,NumCells);
+            fullArray = obj.quarter2FullArray(xxQuarter,obj.numPixels);
             
             %null2minRCS code from before
             avgRCS = obj.null2minRCSAvg(fullArray);
@@ -586,9 +584,9 @@ classdef chaffElt
             %"look" the same ie) if top left is tt then whole matrix will
             %be [tt fliplr(tt); flipud(tt) fliplr(flipud(tt))]
             disp('starting optimizaton for symmetric chaff')
-            numCellsFull = obj.getNumCellsRow(); %Number of cells of full plate
-            numCellsQuarter = numCellsFull/2; %number of cells in one quarter
-            numPoints = numCellsQuarter^2; %number of points in a quarter
+            numPixelFull = obj.numPixels; %Number of cells of full plate
+            numPixelQuarter = numPixelFull/2; %number of cells in one quarter
+            numPoints = numPixelQuarter^2; %number of points in a quarter
 
             pointsOn_lb = zeros(numPoints,1);
             pointsOn_ub = ones(numPoints,1);
@@ -605,7 +603,7 @@ classdef chaffElt
             toc  
             
             %pointsOnVal is just quarter cell, get full array
-            pointsOnFull = obj.quarter2FullArray(pointsOnVal,numCellsFull);
+            pointsOnFull = obj.quarter2FullArray(pointsOnVal,numPixelFull);
 
             %return nulled chaff
             chfNulled = obj.nullNewFromOneArray(pointsOnFull); 
@@ -1322,7 +1320,7 @@ classdef chaffElt
         end
 
         
-%==========================================================================
+%% ======================Plotting Current==================================
 %plotting current
         function [JJx_theta, JJy_theta, JJx_phi, JJy_phi] = plotCurrent(obj)
             %plot the current of the null plate... idea is to take the code
@@ -1633,7 +1631,7 @@ classdef chaffElt
         end
         
         
-% ---------------------- plotting null position ------------------        
+%% ---------------------- plotting null position ------------------        
         function plotNullPos(obj)
             %plotting what cells are getting nulled
             %Bxn so row = NumCell, col = NumEdge
@@ -1653,13 +1651,14 @@ classdef chaffElt
                 row = nullPosLocal(ii,1); col = nullPosLocal(ii,2);
                 nullPlot(row,col) = 0;
             end
+            
             % plotting
             figure; imagesc(nullPlot)
             title('with grid')
             hold on
             for ii = 1:plateF.NumCells-1
                 xGrid = ii*ones(1,10)+1/2;
-                yGrid = linspace(0,20,10);
+                yGrid = 1/2+linspace(0,plateF.NumCells,10);
                 
                 plot(xGrid,yGrid,'r')
                 plot(yGrid,xGrid,'r') %because its a square :P
@@ -1683,7 +1682,7 @@ classdef chaffElt
         
 
         
-        %======================Export stuff========================================
+%% ======================Export stuff========================================
         function null2csv(obj, filename)
             %export cellSize and null position to csv
             %first line will hold cell size and NumCells
@@ -1711,7 +1710,7 @@ classdef chaffElt
         end
     end
         
-    
+%% static functions   
     methods (Static)
         function [row,col] = array2rowcol(xx, CellsPerRow)
             %takes in an array, finds the coordinates of the nulls, and
@@ -1756,14 +1755,14 @@ classdef chaffElt
             % engine
             szA = size(A) ;
             szB = size(B) ;
-            szS = szA - szB + 1 
+            szS = szA - szB + 1 ;
             tf = false(szA) ;
             for r = 1:szS(1)
                 for c = 1:szS(2)
                     tf(r,c) = isequal(A(r:r+szB(1)-1,c:c+szB(2)-1),B) ;
                 end
             end
-            [rout,cout] = find(tf)
+            [rout,cout] = find(tf);
         end
 
 

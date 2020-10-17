@@ -16,16 +16,23 @@ freq = 10*10^9; %hz, operating frequency
 lda = physconst('lightspeed')/freq;
 plateLength = lda; %2 inches converted to meters
 %angles to be optimized over
-thetaVals = 0;linspace(0,pi/2,100);
-phiVals = 0;linspace(0,pi/2,50);
-loadVal = 0; % don't have to have value, lets you preload a plate to speed up process (if already generated)
-NumCells = 40;
-pixelSize = 10;
+thetaVals = linspace(0,pi/2,100);
+phiVals = linspace(0,pi/2,50);
+
+NumCells = 24;
+pixelSize = 6;
+if(mod(NumCells/pixelSize,2))
+    error('you want even girl :/ probably should fix this')
+end
 chf = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,pixelSize);
 
 %% playing with nullPixel
 close all
-nullPlot = randi([0,1],4)
+nullPlot = randi([0,1],NumCells/pixelSize);
+% nullPlot = [0 1 0 1;...
+%             1 0 1 0;...
+%             1 1 1 1;...
+%             1 1 1 1];
 [row,col]=find(nullPlot==0)
 nullPos = [row,col];
 chf = chf.nullPixels(nullPos)

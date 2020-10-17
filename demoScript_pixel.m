@@ -22,20 +22,31 @@ phiVals = 0;
 %ex) 10x10, z-matrix size would be 180x180 
 %to turn a cell off, the edges surrounding that cell are removed
 %can set here or its defaults to lambda/10 division 
-NumCells = 18;
+NumCells = 24;
 
 %set pixelSize: the number of cells in each pixel, needs to be able to
 %divide NumCells and get an integer value out which will be the number
-%of pixels... ie) 18/3
+%of pixels... ie) 24/6 will give a 4 pixel resolution
+pixelSize = 6;
 
-%don't pre-load a plate
-%honestly kind of want to get rid of this, I think keeping a library 
-%is going to be to big? defaults to zero though
-loadVal = 0; 
+
 
 %create chaff
-chf = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells);
+chf = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,pixelSize);
 
+%% set pattern
+%top line (uncommented) generates a random pattern
+%bottom line (commented out) can be user set... nothing checking to make
+nullPlot = randi([0,1],NumCells/pixelSize);
+% nullPlot = [0 1 0 1;...
+%             1 0 1 0;...
+%             1 1 1 1;...
+%             1 1 1 1];
+[row,col]=find(nullPlot==0)
+nullPos = [row,col];
+chf = chf.nullPixels(nullPos)
+
+chf.plotNullPos
 %% plot RCS
 %here's a couple lines that plot rcs
 
