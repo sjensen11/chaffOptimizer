@@ -150,17 +150,17 @@ classdef chaffElt
             %the chaff plate. It's transformed such that symmetry happens
             %ie) this one takes in a pattern and then translates to
             %positions
-            pixelSizeLoc = obj.pixelSize;
+            
             %remake into cell matrix (currently pixelxpixel)
             %ie) the big one
-            quadLen = length(nullPixelLT);
-            nullQuadCell = zeros(quadLen*pixelSizeLoc);
+            quadLen = length(lt);
+            nullQuadCell = zeros(quadLen*pixelSize);
 
             for ii =1:quadLen
                 for jj=1:quadLen
-                    currII = pixelSizeLoc*(ii-1)+1;
-                    currJJ = pixelSizeLoc*(jj-1)+1;
-                    nullQuadCell(currII:currII+pixelSizeLoc-1,currJJ:currJJ+pixelSizeLoc-1) = nullPixelLT(ii,jj);
+                    currII = pixelSize*(ii-1)+1;
+                    currJJ = pixelSize*(jj-1)+1;
+                    nullQuadCell(currII:currII+pixelSize-1,currJJ:currJJ+pixelSize-1) = lt(ii,jj);
                 end
             end
             
@@ -192,6 +192,12 @@ classdef chaffElt
             %take traingle and make it into square
             quadCell = tril(nullQuadCell,-1).'+tril(nullQuadCell);
 
+            
+            %make into big matrix comprised of celss
+            %i'm not sure this line will always work for larger pixel
+            %sizes? Need to test... but if there's a problem this is
+            %probably what's causing it
+            nullQuadCell = round(imresize(quad,obj.pixelSize));
 
             %decides odd or even scheme
             %chooses whatever "fits" ie) if quadrant is size 4x4 and
@@ -201,39 +207,26 @@ classdef chaffElt
             
             if(quadSize*2 == obj.numPixels())
                 %flips quadrant around
-                nullCell = [quadCell fliplr(quadCell); flipud(quadCell) rot90(quadCell,2)];
-
+                nullPixel = [quad fliplr(quad); flipud(quad) rot90(quad,2)];
+                %get positions
+                [row,col]=find(nullPixel==0)
+                nullPosLoc = [row,col];
+                obj = obj.nullPixels(nullPosLoc);
             elseif(quadSize*2-1 == obj.numPixels())
                 
                 %flips quadrant around, but don't reuse the center
-                nullCell = [quadCell, fliplr(quadCell(:,1:end-pixelSizeLoc));...
-                             flipud(quadCell(1:end-pixelSizeLoc,:)), rot90(quadCell(1:end-pixelSizeLoc,1:end-pixelSizeLoc),2)];
+                nullPixel = [quad, fliplr(quad(:,1:end-1));...
+                             flipud(quad(1:end-1,:)), rot90(quad(1:end-1,1:end-1),2)];
                 
+                %get positions
+                [row,col]=find(nullPixel==0)
+                nullPosLoc = [row,col];
+                obj = obj.nullPixels(nullPosLoc);
             else
                 error(['choosen quadrant size does not fit, should be '...
                         num2str(quadSize*2), ' or ', num2str(num2str(quadSize*2-1))])
             end
-            
-            %deal with center ring
-            %can get ring around center that has to be dealt with special
-            %first corner fix
-                cornerMat =  [0 1; 1 0];
-                [rout,cout]= findSubMatrix(nullCell,cornerMat);
-                if(rout) %there's a ring
-                    nullCell(rout(1),cout(1))=1;
-                    nullCell(rout(2)+1,cout(2)+1) = 1;
-                    %second corner fix
-                    %only need to fix, if found problem :P
-                    cornerMat =  [1 0; 0 1];
-                    [rout,cout]= findSubMatrix(nullCell,cornerMat)
-                    nullCell(rout(1),cout(1)+1)=1;
-                    nullCell(rout(2)+1,cout(2)) = 1;
-                end
-
-            %get positions and feed into nullNew
-            [row,col]=find(nullCell==0);
-            nullPosLoc = [row,col];
-            obj = obj.nullNew(nullPosLoc);
+               
 
         end
        

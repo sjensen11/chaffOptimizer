@@ -54,11 +54,11 @@ end
 quadCell = tril(nullQuadCell,-1).'+tril(nullQuadCell);
 
 %even problem
-nullCell = [quadCell fliplr(quadCell); flipud(quadCell) rot90(quadCell,2)];
+% nullCell = [quadCell fliplr(quadCell); flipud(quadCell) rot90(quadCell,2)];
 
 %odd problem
-% nullCell = [quadCell, fliplr(quadCell(:,1:end-pixelSize));...
-%              flipud(quadCell(1:end-pixelSize,:)), rot90(quadCell(1:end-pixelSize,1:end-pixelSize),2)];
+nullCell = [quadCell, fliplr(quadCell(:,1:end-pixelSize));...
+             flipud(quadCell(1:end-pixelSize,:)), rot90(quadCell(1:end-pixelSize,1:end-pixelSize),2)];
 
 %deal with center ring
 %can get ring around center that has to be dealt with special
