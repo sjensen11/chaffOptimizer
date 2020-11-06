@@ -35,29 +35,29 @@ pixelSize = 4;
 
 
 %create odd chaff
-tic
-chf_odd = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_odd ,pixelSize);
-toc
+% tic
+% chf_odd = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_odd ,pixelSize);
+% toc
 
 %create even chaff
 NumCells_even = 32
-tic
-chf_even = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_even,pixelSize);
-toc
+% tic
+% chf_even = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_even,pixelSize);
+% toc
 
 %% set pattern
 %function takes in a lower triangle matrix and transforms it for a
 %symmetric chaff
 %this sets it to something random for testing
 pixelNum = NumCells_even/pixelSize 
-lt = randi([0 1],4);
-lt = tril(lt)
+% lt = randi([0 1],4);
+% nullPixelLT = tril(lt)
 
 % can control pattern
-% nullPixelLT = [1 0 0 0;...
-%                1 0 0 0;...
-%                1 1 0 0;...
-%                1 1 0 1];
+nullPixelLT = [1 0 0 0;...
+               1 1 0 0;...
+               0 1 1 0;...
+               1 1 0 1];
 %% set symmetric pattern - even
 
 %odd plots
@@ -66,6 +66,7 @@ chf_even.plotNullPos
 
 %plot one of the currents
 [Jx_phi_mat,Jy_phi_mat,Jx_theta_mat,Jy_theta_mat,del] = plotcurrent(chf_even.plateNull);
+figure;imagesc(abs(Jx_phi_mat))
 title('Jx_{\phi} for 8 across')
 %% set symmetric pattern - odd
 
@@ -73,4 +74,21 @@ title('Jx_{\phi} for 8 across')
 chf_odd = chf_odd.symmetricNullPix(nullPixelLT)
 chf_odd.plotNullPos
 [Jx_phi_mat,Jy_phi_mat,Jx_theta_mat,Jy_theta_mat,del] = plotcurrent(chf_odd.plateNull);
+figure;imagesc(abs(Jx_phi_mat))
 title('Jx_{\phi} for 7 across')
+
+
+%% debug optimization code
+obj = chf_even;
+            numQuartPixel = obj.numPixels/2; 
+            numPoints = numQuartPixel^2; %number of points in a quarter
+
+            pointsOn_lb = zeros(numPoints,1);
+            pointsOn_ub = ones(numPoints,1);
+xxQuarter = pointsOn_ub
+xxQuarter([1,2,6]) = 0
+avgRCS = chf_odd.null2minRCSAvgSym(xxQuarter)
+
+%% optimization code
+chf_odd.maximizeRCSAvgSymm()
+

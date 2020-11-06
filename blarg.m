@@ -1,81 +1,85 @@
+%% testing reshaping
+tt = 1:16
+reshape(tt,4,4)
+
 %% nulling corners
-%trying to figure out how to include corners in symmetric stuff
-% pixelSize = 4
-% close all
-lt = randi([0 1],4);
-lt = tril(lt)
-% lt = [0 0 0 0;...
-%       0 1 0 0;...
-%       0 0 0 0;...
-%       0 0 1 0];
-
-pixelSize = 5;
-
-
-
-% lt = tril(lt,-1).'+tril(lt);
-
-%remake into cell matrix
-quadLen = length(lt);
-nullQuadCell = zeros(quadLen*pixelSize);
-
-for ii =1:quadLen
-    for jj=1:quadLen
-        currII = pixelSize*(ii-1)+1;
-        currJJ = pixelSize*(jj-1)+1;
-        nullQuadCell(currII:currII+pixelSize-1,currJJ:currJJ+pixelSize-1) = lt(ii,jj);
-    end
-end
-%find first type of corner
-    %returns the smaller integer location ie) 1,1 wins 
-    cornerMat =  [0 1; 1 0];
-    [rout,cout]= findSubMatrix(nullQuadCell,cornerMat);
-    nullQuadCell(rout,cout)=1;
-
-%deal with the other type 
-    cornerMat =  [1 0; 0 1];
-    [rout,cout]= findSubMatrix(nullQuadCell,cornerMat);
-    nullQuadCell(rout,cout+1)=1;
-figure; imagesc(nullQuadCell);title('normal corner fix')
-%have to deal with diagonals
-%the upper triangle is don't care, so other check didn't find this
-%ie, we're adding an edge case fix
-%want to deal 
-cornerMat = [0 0; 1 0];
-[rout,cout]= findSubMatrix(nullQuadCell,cornerMat);
-%check everything it found, but only deal with diagonal
-for ii = 1:length(rout)
-    if(rout(ii)==cout(ii))%at a diagonal
-        nullQuadCell(rout(ii),cout(ii))=1;
-    end
-end
-
-
-quadCell = tril(nullQuadCell,-1).'+tril(nullQuadCell);
-
-%even problem
-nullCell = [quadCell fliplr(quadCell); flipud(quadCell) rot90(quadCell,2)];
-
-%odd problem
-% nullCell = [quadCell, fliplr(quadCell(:,1:end-pixelSize));...
-%              flipud(quadCell(1:end-pixelSize,:)), rot90(quadCell(1:end-pixelSize,1:end-pixelSize),2)];
-
-%deal with center ring
-%can get ring around center that has to be dealt with special
-%first corner fix
-    cornerMat =  [0 1; 1 0];
-    [rout,cout]= findSubMatrix(nullCell,cornerMat);
-    if(rout) %there's a ring
-        nullCell(rout(1),cout(1))=1;
-        nullCell(rout(2)+1,cout(2)+1) = 1;
-        %second corner fix
-        %only need to fix, if found problem :P
-        cornerMat =  [1 0; 0 1];
-        [rout,cout]= findSubMatrix(nullCell,cornerMat)
-        nullCell(rout(1),cout(1)+1)=1;
-        nullCell(rout(2)+1,cout(2)) = 1;
-    end
-    figure;imagesc(nullCell); 
+% %trying to figure out how to include corners in symmetric stuff
+% % pixelSize = 4
+% % close all
+% lt = randi([0 1],4);
+% lt = tril(lt)
+% % lt = [0 0 0 0;...
+% %       0 1 0 0;...
+% %       0 0 0 0;...
+% %       0 0 1 0];
+% 
+% pixelSize = 5;
+% 
+% 
+% 
+% % lt = tril(lt,-1).'+tril(lt);
+% 
+% %remake into cell matrix
+% quadLen = length(lt);
+% nullQuadCell = zeros(quadLen*pixelSize);
+% 
+% for ii =1:quadLen
+%     for jj=1:quadLen
+%         currII = pixelSize*(ii-1)+1;
+%         currJJ = pixelSize*(jj-1)+1;
+%         nullQuadCell(currII:currII+pixelSize-1,currJJ:currJJ+pixelSize-1) = lt(ii,jj);
+%     end
+% end
+% %find first type of corner
+%     %returns the smaller integer location ie) 1,1 wins 
+%     cornerMat =  [0 1; 1 0];
+%     [rout,cout]= findSubMatrix(nullQuadCell,cornerMat);
+%     nullQuadCell(rout,cout)=1;
+% 
+% %deal with the other type 
+%     cornerMat =  [1 0; 0 1];
+%     [rout,cout]= findSubMatrix(nullQuadCell,cornerMat);
+%     nullQuadCell(rout,cout+1)=1;
+% figure; imagesc(nullQuadCell);title('normal corner fix')
+% %have to deal with diagonals
+% %the upper triangle is don't care, so other check didn't find this
+% %ie, we're adding an edge case fix
+% %want to deal 
+% cornerMat = [0 0; 1 0];
+% [rout,cout]= findSubMatrix(nullQuadCell,cornerMat);
+% %check everything it found, but only deal with diagonal
+% for ii = 1:length(rout)
+%     if(rout(ii)==cout(ii))%at a diagonal
+%         nullQuadCell(rout(ii),cout(ii))=1;
+%     end
+% end
+% 
+% 
+% quadCell = tril(nullQuadCell,-1).'+tril(nullQuadCell);
+% 
+% %even problem
+% nullCell = [quadCell fliplr(quadCell); flipud(quadCell) rot90(quadCell,2)];
+% 
+% %odd problem
+% % nullCell = [quadCell, fliplr(quadCell(:,1:end-pixelSize));...
+% %              flipud(quadCell(1:end-pixelSize,:)), rot90(quadCell(1:end-pixelSize,1:end-pixelSize),2)];
+% 
+% %deal with center ring
+% %can get ring around center that has to be dealt with special
+% %first corner fix
+%     cornerMat =  [0 1; 1 0];
+%     [rout,cout]= findSubMatrix(nullCell,cornerMat);
+%     if(rout) %there's a ring
+%         nullCell(rout(1),cout(1))=1;
+%         nullCell(rout(2)+1,cout(2)+1) = 1;
+%         %second corner fix
+%         %only need to fix, if found problem :P
+%         cornerMat =  [1 0; 0 1];
+%         [rout,cout]= findSubMatrix(nullCell,cornerMat)
+%         nullCell(rout(1),cout(1)+1)=1;
+%         nullCell(rout(2)+1,cout(2)) = 1;
+%     end
+%     figure;imagesc(nullCell); 
 
 %% triangle nulling - odd
 %same as below, symmetric stuff but don't redoing middle line

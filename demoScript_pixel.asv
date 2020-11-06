@@ -25,7 +25,7 @@ phiVals = 0;
 %ex) 10x10, z-matrix size would be 180x180 
 %to turn a cell off, the edges surrounding that cell are removed
 %can set here or its defaults to lambda/10 division 
-NumCells_ = 28;
+NumCells_odd = 28;
 
 %set pixelSize: the number of cells in each pixel, needs to be able to
 %divide NumCells and get an integer value out which will be the number
@@ -35,47 +35,60 @@ pixelSize = 4;
 
 
 %create odd chaff
-tic
-chf_odd = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,pixelSize);
-toc
+% tic
+% chf_odd = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_odd ,pixelSize);
+% toc
 
 %create even chaff
-NumCells = 32
-tic
-chf_even = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,pixelSize);
-toc
+NumCells_even = 32
+% tic
+% chf_even = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_even,pixelSize);
+% toc
 
 %% set pattern
 %function takes in a lower triangle matrix and transforms it for a
 %symmetric chaff
 %this sets it to something random for testing
-pixelNum = NumCells/pixelSize 
-lt = randi([0 1],4);
-lt = tril(lt)
-%this sets it 
-% nullPixelLT = [1 0 0 0;...
-%                1 0 0 0;...
-%                1 1 0 0;...
-%                1 1 0 1];
+pixelNum = NumCells_even/pixelSize 
+% lt = randi([0 1],4);
+% nullPixelLT = tril(lt)
+
+% can control pattern
+nullPixelLT = [1 0 0 0;...
+               1 1 0 0;...
+               0 1 1 0;...
+               1 1 0 1];
 %% set symmetric pattern - even
 
 %odd plots
 chf_even = chf_even.symmetricNullPix(nullPixelLT)
 chf_even.plotNullPos
+
+%plot one of the currents
+[Jx_phi_mat,Jy_phi_mat,Jx_theta_mat,Jy_theta_mat,del] = plotcurrent(chf_even.plateNull);
+figure;imagesc(abs(Jx_phi_mat))
+title('Jx_{\phi} for 8 across')
 %% set symmetric pattern - odd
 
 %odd plots
 chf_odd = chf_odd.symmetricNullPix(nullPixelLT)
 chf_odd.plotNullPos
-%% plot RCS
-%here's a couple lines that plot rcs
+[Jx_phi_mat,Jy_phi_mat,Jx_theta_mat,Jy_theta_mat,del] = plotcurrent(chf_odd.plateNull);
+figure;imagesc(abs(Jx_phi_mat))
+title('Jx_{\phi} for 7 across')
 
-%plots monostatic RCS in cartesian grid with theta and phi as the axes
-dbOn = 0; %plot raw values
-chf.plotMonoFlat(dbOn)
 
-%plots bistatic RCS at at scattering angle. Theta is the x-axis
-%generates 4 graphs for each incident polarization vs scattering
-%polarization
-phiScat = 0;
-chf.plotBiRCS(phiScat)
+%% debug optimization code
+obj = chf_even;
+            numQuartPixel = obj.numPixels/2; 
+            numPoints = numQuartPixel^2; %number of points in a quarter
+
+            pointsOn_lb = zeros(numPoints,1);
+            pointsOn_ub = ones(numPoints,1);
+xxQuarter = pointsOn_ub
+xxQuarter([1,2,6]) = 0
+avgRCS = chf_odd.null2minRCSAvgSym(xxQuarter)
+
+%% optimization code
+chf_odd.maximizeRCSAvgSymm()
+

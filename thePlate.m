@@ -280,8 +280,7 @@ classdef thePlate
             
             del = obj.len/obj.NumCells; %a in the book
             
-%             ex = zeros(BxnSize,1);
-%             ey = zeros(BynSize,1);
+
 
             %have to update seperately, because may be different sizes
             %onces we zero out cells.

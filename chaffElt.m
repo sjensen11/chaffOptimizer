@@ -22,8 +22,8 @@ classdef chaffElt
         phiVals %phi (azimuth) values to be swept over
         %values for plotting
         
-        %
-        
+        %had to include "fake cells" to allow current on corner edges 
+        fakeEdges
         
     end
     
@@ -31,9 +31,7 @@ classdef chaffElt
         function obj = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,pixelSize)
             %creates chf object, please see above for description of most
             %of the variables
-            %NumCells (even integer): number of cells across ie) number of cells in a row
-            %           if an even integer is not choosen, codewill force 
-            %           it be (optimization code assumes it will be)                               
+            %NumCells: number of cells across ie) number of cells in a row                            
             %pixelSize: number of cells in a single pixel, ie) object is 40
             %           40 cells accross and each pixel is 10 in size
             obj.freq = freq;
@@ -144,7 +142,7 @@ classdef chaffElt
             obj.nullPos = [];
         end
         
-        function obj = symmetricNullPix(obj,nullPixelLT)
+        function [obj,fullmat] = symmetricNullPix(obj,nullPixelLT)
             %nullPixelLT is a square matrix whose LOWER triangle carries
             %value (upper triangle should be zeros). This describes 1/8 of
             %the chaff plate. It's transformed such that symmetry happens
@@ -167,12 +165,12 @@ classdef chaffElt
             %find first type of corner
             %returns the smaller integer location ie) 1,1 wins 
             cornerMat =  [0 1; 1 0];
-            [rout,cout]= findSubMatrix(nullQuadCell,cornerMat);
+            [rout,cout]= obj.findSubMatrix(nullQuadCell,cornerMat);
             nullQuadCell(rout,cout)=1;
 
             %deal with the other type 
             cornerMat =  [1 0; 0 1];
-            [rout,cout]= findSubMatrix(nullQuadCell,cornerMat);
+            [rout,cout]= obj.findSubMatrix(nullQuadCell,cornerMat);
             nullQuadCell(rout,cout+1)=1;
             
             
@@ -181,7 +179,7 @@ classdef chaffElt
             %ie, we're adding an edge case fix
             %want to deal 
             cornerMat = [0 0; 1 0];
-            [rout,cout]= findSubMatrix(nullQuadCell,cornerMat);
+            [rout,cout]= obj.findSubMatrix(nullQuadCell,cornerMat);
             %check everything it found, but only deal with diagonal
             for ii = 1:length(rout)
                 if(rout(ii)==cout(ii))%at a diagonal
@@ -220,12 +218,12 @@ classdef chaffElt
                 cornerMat =  [0 1; 1 0];
                 [rout,cout]= findSubMatrix(nullCell,cornerMat);
                 if(rout) %there's a ring
-                    nullCell(rout(1),cout(1))=1;
-                    nullCell(rout(2)+1,cout(2)+1) = 1;
+                    nullCell(rout(1)+1,cout(1)+1)=1;
+                    nullCell(rout(2),cout(2)) = 1;
                     %second corner fix
                     %only need to fix, if found problem :P
                     cornerMat =  [1 0; 0 1];
-                    [rout,cout]= findSubMatrix(nullCell,cornerMat)
+                    [rout,cout]= findSubMatrix(nullCell,cornerMat);
                     nullCell(rout(1),cout(1)+1)=1;
                     nullCell(rout(2)+1,cout(2)) = 1;
                 end
@@ -234,6 +232,9 @@ classdef chaffElt
             [row,col]=find(nullCell==0);
             nullPosLoc = [row,col];
             obj = obj.nullNew(nullPosLoc);
+            
+            %for output in case needed
+            fullmat = nullCell;
 
         end
        
@@ -262,7 +263,7 @@ classdef chaffElt
             nullPlot = ones(obj.numPixels);
             for ii = 1:size(nullPixel,1)
                 row = nullPixel(ii,1); col = nullPixel(ii,2);
-                nullPlot(row,col) = 0
+                nullPlot(row,col) = 0;
             end
             %find first type of corner
             %returns the smaller integer location ie) 1,1 wins 
@@ -567,24 +568,27 @@ classdef chaffElt
         end
         
         
-        function rcsAvg = null2minRCSAvg(obj,xx)
+
+        
+        function avgRCS = null2minRCSAvgSym(obj,xxQuarter)
             %seeks to minimize(minus sign in ga makes it maxize) the
             %average RCS over various angles of incidence
             %xx is a series of zeros and one, zero means null that position
             %and is feed into null2minRCS(obj,xx)
-            %note: null2minRCS returns the average rcs over all polarizations
-            %   ie) (rcs_tt+rcs_tp+rcs_pt+rcs_pp)/4 where p=phi, t = theta
+            %tries to do some symmettry magic
+            
+            %reshape into matrix
+            %length of side of quarter is half of total pixel
+            nullQuartMat = reshape(xxQuarter,ceil(obj.numPixels/2),ceil(obj.numPixels/2));
+            
 
-            %-----Null Plate----------
-            %xx is a series of zeros and one, zero means null that position
-            [row,col] = obj.array2rowcol(xx, obj.numPixels);
-            nullPixels = [row' col'];
-
+            %null the plate
+            obj = obj.symmetricNullPix(nullQuartMat);
+            
+            %---get monoRCS at various points-------------
             %walk through frequencies
             freqLen = length(obj.freq);
-            obj = obj.nullPixels(nullPixels);
 
-            %---get monoRCS at various points-------------
             %get angles to walk over
             thetaLoc = obj.thetaVals;
             phiLoc = obj.phiVals;
@@ -593,7 +597,7 @@ classdef chaffElt
             numPhiAngles = length(obj.phiVals);
             
             %intialize rcsSum
-            rcsAvg = 0;%this one will be over all frequencies and then averaged 
+            avgRCS = 0;%this one will be over all frequencies and then averaged 
             rcsOneFreq = 0;
             
             for pp = 1:freqLen %walk through frequencies
@@ -614,29 +618,14 @@ classdef chaffElt
                     end
                     %doing it this way so only have to multiply by lda^2 at
                     %the end
-                    rcsAvg =rcsAvg+lda^2*rcsOneFreq; %just add and divide at the end
+                    avgRCS =avgRCS+lda^2*rcsOneFreq; %just add and divide at the end
                     rcsOneFreq = 0;
                 end
                 
             end
             %divide by number of elements added to rcsAvg for average
             %2 for rcstt and rcspp, freqLen: # of frequencies, 
-            rcsAvg = rcsAvg/(2*freqLen*numThetaAngles*numPhiAngles);
-
-        end
-        
-        function avgRCS = null2minRCSAvgQuarter(obj,xxQuarter)
-            %seeks to minimize(minus sign in ga makes it maxize) the
-            %average RCS over various angles of incidence
-            %xx is a series of zeros and one, zero means null that position
-            %and is feed into null2minRCS(obj,xx)
-            %tries to do some symmettry magic
-            
-            %take the one quarter and make into the full array
-            fullArray = obj.quarter2FullArray(xxQuarter,obj.numPixels);
-            
-            %null2minRCS code from before
-            avgRCS = obj.null2minRCSAvg(fullArray);
+            avgRCS = avgRCS/(2*freqLen*numThetaAngles*numPhiAngles);
         end
         
         
@@ -646,64 +635,46 @@ classdef chaffElt
             [phi,rcs] = obj.plateNull.getRCS(theta,plot);
         end
 %% ======================== optimize code ===================================        
-        function [chfNulled,pointsOnVal,RCSavg] = maximizeRCSAvg(obj)
-            %runs the genetic algorithm code... the range of angles can be
-            %found in chf.null2minRCSAvg
-            %this function assumes nothing and just will brute force the
-            %issue
-            %think i care about cells on
-            numPoints = obj.getNumCellsFull(); %size of Full plate
 
-            pointsOn_lb = zeros(numPoints,1);
-            pointsOn_ub = ones(numPoints,1);
-            options = gaoptimset('PlotFcns',...
-             {@gaplotbestf,@gaplotbestindiv,@gaplotexpectation,@gaplotstopping});
-            options = gaoptimset(options,'StallGenLimit',100);
-            options = gaoptimset(options,'Generations',100);
-
-            options = gaoptimset(options,'TolFun',1e-15);
-            Intcon=1:numPoints;
-            %maximizing center main beam
-            tic
-            [pointsOnVal,RCSavg] = ga(@(pointsOn) -obj.null2minRCSAvg(pointsOn),numPoints,[],[],[],[],pointsOn_lb,pointsOn_ub,[],Intcon,options);
-            toc  
-
-            chfNulled = obj.nullNewFromOneArray(pointsOnVal); 
-        end
-%% ==========================================================================
-        function [chfNulled,pointsOnFull,RCSavg] = maximizeRCSAvgSymm(obj)
+        function [chfNulled,nullMat,RCSavg] = maximizeRCSAvgSymm(obj,maxRuns)
             %runs the genetic algorithm code... the range of angles can be
             %found in chf.null2minRCSAvg
             %tries to build in some symettry assumes each quarter has to
             %"look" the same ie) if top left is tt then whole matrix will
             %be [tt fliplr(tt); flipud(tt) fliplr(flipud(tt))]
+            
+            if(nargin <2)
+                maxRuns = 50;
+            end
+            
             disp('starting optimizaton for symmetric chaff')
-            numPixelFull = obj.numPixels; %Number of cells of full plate
-            numPixelQuarter = numPixelFull/2; %number of cells in one quarter
-            numPoints = numPixelQuarter^2; %number of points in a quarter
+            numQuartPixel = ceil(obj.numPixels/2); %in case of odd number 
+            numPoints = numQuartPixel^2; %number of points in a quarter
 
             pointsOn_lb = zeros(numPoints,1);
             pointsOn_ub = ones(numPoints,1);
             options = gaoptimset('PlotFcns',...
              {@gaplotbestf,@gaplotbestindiv,@gaplotexpectation,@gaplotstopping});
-            options = gaoptimset(options,'StallGenLimit',50);
-            options = gaoptimset(options,'Generations',50);
+            options = gaoptimset(options,'StallGenLimit',maxRuns);
+            options = gaoptimset(options,'Generations',maxRuns);
 
             options = gaoptimset(options,'TolFun',1e-15);
             Intcon=1:numPoints;
             %maximizing center main beam
-            tic
-            [pointsOnVal,RCSavg] = ga(@(pointsOn) -obj.null2minRCSAvgQuarter(pointsOn),numPoints,[],[],[],[],pointsOn_lb,pointsOn_ub,[],Intcon,options);
-            toc  
-            
-            %pointsOnVal is just quarter cell, get full array
-            pointsOnFull = obj.quarter2FullArray(pointsOnVal,numPixelFull);
-
+%             tic
+            [pointsOnVal,RCSavg] = ga(@(pointsOn) -obj.null2minRCSAvgSym(pointsOn),numPoints,[],[],[],[],pointsOn_lb,pointsOn_ub,[],Intcon,options);
+%             toc  
+%             
+            %reshape into matrix
+            nullQuartMat = reshape(pointsOnVal,ceil(obj.numPixels/2),ceil(obj.numPixels/2));
+                        
             %return nulled chaff
-            chfNulled = obj.nullNewFromOneArray(pointsOnFull); 
+            [chfNulled, nullMat] = obj.symmetricNullPix(nullQuartMat);
+
         end
-        
+%% -----------        
         function [chfNulled,pointsOnFull,RCSavg] = maximizeRCSAvgSymmPatternSearch(obj,on)
+            %DOESN'T WORK
             %runs the genetic algorithm code... the range of angles can be
             %found in chf.null2minRCSAvg
             %tries to build in some symettry assumes each quarter has to
@@ -855,7 +826,7 @@ classdef chaffElt
 %                         xlabel('angle (rads)'); ylabel('bircs (dB)')
             end
         end
-        %------------------mono rcs -------------
+%% ------------------mono rcs -------------
         function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSVals(obj,phi,theta)
             %returns the bistatic radar cross-section... rows are each
             %individual frequency ie) rcsNull(1) is the first plate
@@ -1099,7 +1070,7 @@ classdef chaffElt
         end
         
         
-        function plotMonoFlat(obj,dbOn)
+        function [rcsNullTT,rcsNullPP,rcsFullTT,rcsFullPP] = plotMonoFlat(obj,dbOn)
             %plots the rcs of null plate and the full plate
             %dbOn - plots in dB, defaults to off
             if(nargin <2)
