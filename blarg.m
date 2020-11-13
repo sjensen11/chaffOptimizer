@@ -1,6 +1,6 @@
 %% testing reshaping
-tt = 1:16
-reshape(tt,4,4)
+% tt = 1:16
+% reshape(tt,4,4)
 
 %% nulling corners
 % %trying to figure out how to include corners in symmetric stuff

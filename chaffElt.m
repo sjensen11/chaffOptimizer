@@ -134,6 +134,28 @@ classdef chaffElt
         function numCells = getNumCellsFull(obj)
             numCells = obj.plateFull(1).NumCells^2;
         end
+%% pixels
+        function obj = changePixelSize(obj, pixelSize)
+            %update the pixelSize and numPixel to new value
+            %get numcells
+            NumCells = obj.plateFull(1).NumCells;
+            
+            %calculate pixelNum off of choosen pixelSize
+            pixelNum = NumCells/pixelSize;
+            %if you get a non-integer for pixelNum, choose a new pixel size
+            if(pixelNum~=floor(pixelNum))
+            	%makes sure pixelNum is an integer, because you can't have
+            	%.1 of a cell :P
+                %update pixelSize next integer number of cells up
+                pixelNum = ceil(pixelNum);
+                pixelSize = NumCells/pixelNum;
+                disp(['pixelSize lead to non-integer number of pixels cells,'...
+                      ' updated to pixelSize: ' num2str(pixelSize)]);
+                    
+            end
+            obj.pixelSize = pixelSize; %set pixelSize
+            obj.numPixels = pixelNum;
+        end
 %% ===================== nulling fun ========================================
         function obj = removeNulls(obj)
             %used to remove null positions... should return to just metal
@@ -216,14 +238,14 @@ classdef chaffElt
             %can get ring around center that has to be dealt with special
             %first corner fix
                 cornerMat =  [0 1; 1 0];
-                [rout,cout]= findSubMatrix(nullCell,cornerMat);
+                [rout,cout]= obj.findSubMatrix(nullCell,cornerMat);
                 if(rout) %there's a ring
                     nullCell(rout(1)+1,cout(1)+1)=1;
                     nullCell(rout(2),cout(2)) = 1;
                     %second corner fix
                     %only need to fix, if found problem :P
                     cornerMat =  [1 0; 0 1];
-                    [rout,cout]= findSubMatrix(nullCell,cornerMat);
+                    [rout,cout]= obj.findSubMatrix(nullCell,cornerMat);
                     nullCell(rout(1),cout(1)+1)=1;
                     nullCell(rout(2)+1,cout(2)) = 1;
                 end
@@ -1772,6 +1794,16 @@ classdef chaffElt
                 nullMat(row,col) = 0;
             end
             
+        end
+        
+        function toRhino(obj,filename)
+            %exports [plateLength,NumCells; nullPos] to rhino as a csv file
+            plateLength = obj.plateLength;
+            NumCells = obj.plateFull.NumCells;
+            nullPosLoc = obj.nullPos;
+            
+            outMat = [plateLength,NumCells;nullPosLoc];
+            csvwrite(filename,outMat);
         end
     end
         

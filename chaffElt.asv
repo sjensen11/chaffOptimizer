@@ -22,7 +22,7 @@ classdef chaffElt
         phiVals %phi (azimuth) values to be swept over
         %values for plotting
         
-        %hade t 
+        %had to include "fake cells" to allow current on corner edges 
         fakeEdges
         
     end
@@ -133,6 +133,28 @@ classdef chaffElt
         
         function numCells = getNumCellsFull(obj)
             numCells = obj.plateFull(1).NumCells^2;
+        end
+%% pixels
+        function obj = changePixelSize(obj, pixelSize)
+            %update the pixelSize and numPixel to new value
+            %get numcells
+            NumCells = obj.plateFull(1).NumCells;
+            
+            %calculate pixelNum off of choosen pixelSize
+            pixelNum = NumCells/pixelSize;
+            %if you get a non-integer for pixelNum, choose a new pixel size
+            if(pixelNum~=floor(pixelNum))
+            	%makes sure pixelNum is an integer, because you can't have
+            	%.1 of a cell :P
+                %update pixelSize next integer number of cells up
+                pixelNum = ceil(pixelNum);
+                pixelSize = NumCells/pixelNum;
+                disp(['pixelSize lead to non-integer number of pixels cells,'...
+                      ' updated to pixelSize: ' num2str(pixelSize)]);
+                    
+            end
+            obj.pixelSize = pixelSize; %set pixelSize
+            obj.numPixels = pixelNum;
         end
 %% ===================== nulling fun ========================================
         function obj = removeNulls(obj)
@@ -826,7 +848,7 @@ classdef chaffElt
 %                         xlabel('angle (rads)'); ylabel('bircs (dB)')
             end
         end
-        %------------------mono rcs -------------
+%% ------------------mono rcs -------------
         function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSVals(obj,phi,theta)
             %returns the bistatic radar cross-section... rows are each
             %individual frequency ie) rcsNull(1) is the first plate
@@ -1070,7 +1092,7 @@ classdef chaffElt
         end
         
         
-        function plotMonoFlat(obj,dbOn)
+        function [rcsNullTT,rcsNullPP,rcsFullTT,rcsFullPP] = plotMonoFlat(obj,dbOn)
             %plots the rcs of null plate and the full plate
             %dbOn - plots in dB, defaults to off
             if(nargin <2)
@@ -1772,6 +1794,10 @@ classdef chaffElt
                 nullMat(row,col) = 0;
             end
             
+        end
+        
+        function toRhino(obj,filename)
+            %exports [plateLength, nullPos and 
         end
     end
         
