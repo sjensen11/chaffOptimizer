@@ -84,7 +84,7 @@ classdef thePlate
                 Byn_yy(1+nn*NumEdges:NumEdges+nn*NumEdges) = del:del:len-del;
 
             end
-            
+%if you change it this, nullNew won't work anymore :P    
 %             for nn = 0:NumEdges-1
 %                 Byn_xx(1+nn*NumCells:NumEdges+nn*NumCells+1) =  del/2:del:lenx-del/2;
 %                 Byn_yy(1+nn*NumCells:NumEdges+nn*NumCells+1) = del*(nn+1)*ones(1,NumCells);
@@ -286,24 +286,22 @@ classdef thePlate
             %onces we zero out cells.
             phiLoc = phiInc;
             thetaLoc = thetaInc;
-            %there are 2 random /pi both inside sinc( ) and outside because
-            %matlab defines sinc(x) = sin(pi x)/pi x and I want sin(x)/x...
-            %note: %sinc(x) = sin(pi x)/ pi x
-            %kk/(2*pi) = 1 -> what happened to kk, /2, /pi
-            %ie) yes sarah its del/2 but /2 cancelled out
+            %Note: matlab defines sinc(x) = sin(pi x)/pi x 
+            %      so don't worry abou missing a /2 or kk. Just divided
+            %      them out, recall kk = 2*pi
             
             ex_theta = del * (cos(thetaLoc)*cos(phiLoc))...
-                              * sinc(del*sin(thetaLoc)*cos(phiLoc))...
+                              *              sinc(del*sin(thetaLoc)*cos(phiLoc))...
                               * exp(1j*kk*(obj.Bxn_xx*sin(thetaLoc)*cos(phiLoc)...
                                           +obj.Bxn_yy*sin(thetaLoc)*sin(phiLoc)));
             ey_theta =del * (cos(thetaLoc)*sin(phiLoc))...
-                          * sinc(del*sin(thetaLoc)*sin(phiLoc))...
+                          *              sinc(del*sin(thetaLoc)*sin(phiLoc))...
                           * exp(1j*kk*(obj.Byn_xx*sin(thetaLoc)*cos(phiLoc)...
                                       +obj.Byn_yy*sin(thetaLoc)*sin(phiLoc)));
                                  
             %now phi
             ex_phi = del * (-sin(phiLoc))...
-                         * sinc(del*sin(thetaLoc)*cos(phiLoc))...
+                         *              sinc(del*sin(thetaLoc)*cos(phiLoc))...
                          * exp(1j*kk*(obj.Bxn_xx*sin(thetaLoc)*cos(phiLoc)...
                                      +obj.Bxn_yy*sin(thetaLoc)*sin(phiLoc)));
             ey_phi = del * (cos(phiLoc))...
@@ -377,6 +375,7 @@ classdef thePlate
             end
             numVals = 360;
             theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
+            theta = linspace(0,2*pi,numVals); %for thesis
             rcs_tt = zeros(1,numVals);
             rcs_tp = zeros(1,numVals);
             rcs_pt = zeros(1,numVals);
@@ -391,7 +390,7 @@ classdef thePlate
                     ylim([min(10*log10(rcs_tt)),max(10*log10(rcs_tt))])
 
                 figure;plot(theta,10*log10(rcs_tp))
-                    title('RCS VH, E_{s theta}/E_{phi}')
+                    title('RCS VH, E_{s theta}/E_{i phi}')
                     ylim([min(10*log10(rcs_tp)),max(10*log10(rcs_tp))])
 
                 figure;plot(theta,10*log10(rcs_pt))
@@ -454,6 +453,7 @@ classdef thePlate
             
             numVals = 360;
             theta =linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
+            
             rcs_tt = zeros(1,numVals);
             rcs_tp = zeros(1,numVals);
             rcs_pt = zeros(1,numVals);

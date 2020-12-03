@@ -530,7 +530,7 @@ classdef chaffElt
 
                     %shiftup value needed for y directed current... ie)M+1 in
                     %peterson sum pg417
-                    edgeyshiftup = obj.getBxnSizeFull()-length(edgex)+edgey; 
+                    edgeyshiftup = obj.getBxnSizeFull()-length(edgex) + edgey; 
 
                     zzLoc(:,edgex) = [];
                     zzLoc(edgex,:) = [];
