@@ -238,8 +238,7 @@ classdef thePlate
             numEdges = obj.NumCells-1;
             %bxtx
             aa= 3*del/4; 
-%             bb = 9*del/8;
-            bb = del/8;
+            bb = 0;9*del/8;
             %create block matrix to be repeated along diagonal
             mainDiag = aa*ones(1,numEdges);
             offDiag = bb*ones(1,numEdges-1);
@@ -253,7 +252,7 @@ classdef thePlate
             
             %bxty
             %have "block" diagonal now
-            cc = 0;del/4;
+            cc =0; del/4;
 %             cc=0;
             %create diagonals
             mainDiag = cc*ones(1,numEdges);
@@ -282,7 +281,7 @@ classdef thePlate
             
             %---finally generate A B C D from peterson p418-419
             %check this for sign errors
-            AA = (-netta/(1j*kk))*(TxmBxn./del + kk^2*del*TxmBxnsp) + obj.ZL*bxtxLoss;
+            AA = (-netta/(1j*kk))*TxmBxn./del - kk^2*del*TxmBxnsp + obj.ZL*bxtxLoss;
             BB = (-netta/(1j*kk))*TxmByn./del + obj.ZL*bxtyLoss;
             CC = rot90(fliplr((-netta/(1j*kk))*TxmByn/del + obj.ZL*bxtyLoss));
             DD = AA;
@@ -405,7 +404,7 @@ classdef thePlate
             end
             numVals = 360;
             theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
-            theta = linspace(0,pi/2,numVals); %for thesis
+            theta = linspace(0,2*pi,numVals); %for thesis
             rcs_tt = zeros(1,numVals);
             rcs_tp = zeros(1,numVals);
             rcs_pt = zeros(1,numVals);
@@ -419,13 +418,13 @@ classdef thePlate
                     title('RCS VV, E_{s theta}/E_{i theta}')
                     ylim([min(10*log10(rcs_tt)),max(10*log10(rcs_tt))])
 
-%                 figure;plot(theta*180/pi,10*log10(rcs_tp))
-%                     title('RCS VH, E_{s theta}/E_{i phi}')
-%                     ylim([min(10*log10(rcs_tp)),max(10*log10(rcs_tp))])
-% 
-%                 figure;plot(theta*180/pi,10*log10(rcs_pt))
-%                     title('RCS HV, E_{s phi}/E_{i theta}')
-%                     ylim([min(10*log10(rcs_pt)),max(10*log10(rcs_pt))])
+                figure;plot(theta*180/pi,10*log10(rcs_tp))
+                    title('RCS VH, E_{s theta}/E_{i phi}')
+                    ylim([min(10*log10(rcs_tp)),max(10*log10(rcs_tp))])
+
+                figure;plot(theta*180/pi,10*log10(rcs_pt))
+                    title('RCS HV, E_{s phi}/E_{i theta}')
+                    ylim([min(10*log10(rcs_pt)),max(10*log10(rcs_pt))])
 
                 figure;plot(theta*180/pi,10*log10(rcs_pp))
                     title('RCS Hh, E_{s phi}/E_{i phi}')
@@ -435,13 +434,13 @@ classdef thePlate
                     title('RCS VV, E_{s theta}/E_{i theta}')
                     ylim([min(rcs_tt),max(rcs_tt)])
 
-%                 figure;plot(theta*180/pi,rcs_tp)
-%                     title('RCS VH, E_{s theta}/E_{phi}')
-%                     ylim([min(rcs_tp),max(rcs_tp)])
-% 
-%                 figure;plot(theta*180/pi,rcs_pt)
-%                     title('RCS HV, E_{s phi}/E_{i theta}')
-%                     ylim([min(rcs_pt),max(rcs_pt)])
+                figure;plot(theta*180/pi,rcs_tp)
+                    title('RCS VH, E_{s theta}/E_{phi}')
+                    ylim([min(rcs_tp),max(rcs_tp)])
+
+                figure;plot(theta*180/pi,rcs_pt)
+                    title('RCS HV, E_{s phi}/E_{i theta}')
+                    ylim([min(rcs_pt),max(rcs_pt)])
 
                 figure;plot(theta*180/pi,rcs_pp)
                     title('RCS Hh, E_{s phi}/E_{i phi}')

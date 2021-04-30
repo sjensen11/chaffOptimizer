@@ -1,4 +1,4 @@
-classdef thePlate
+classdef thePlate_Metal
     %thePlate MoM model of a flat PEC plate with rooftop basis, pulse
     %testing
     %   Trying to organize a bunch of random scripts. 
@@ -34,9 +34,6 @@ classdef thePlate
         JJ_theta
         JJ_phi
         
-        %surface resistance
-        ZL 
-        
         scaleFactor =  1; %current is off by this much... why? I have no idea
     end
     
@@ -52,19 +49,12 @@ classdef thePlate
         %plotCurrent(obj)
         %F = moviePhiInc(obj,phiIncstart, phiIncend,numFrames)
         
-        function obj = thePlate(NumCells, len ,phiInc,thetaInc,ZL)
+        function obj = thePlate_Metal(NumCells, len ,phiInc,thetaInc)
             %constructor that initializes plate... sets all necessary
             %constants and gets center points for the basis and testing
             %function (Bxn, Byn points)
             obj.phiInc = phiInc;
             obj.thetaInc = thetaInc;
-            
-            if(nargin<5)
-                %no surface resistance given (metal)
-                ZL = 0;
-            end
-            obj.ZL =ZL;
-            
             if(mod(NumCells,2))
                 %this feeds into chf code and that needs even numcells so
                 %fixing it here
@@ -86,9 +76,6 @@ classdef thePlate
             Byn_yy = zeros(1,NumEdges*NumCells);
 
             for nn = 0:NumEdges
-                %DON'T TOUCH THIS SARAH
-                %Making AA=DD requires this definition of points and
-                %mucking with this will muck with that... so don't c 
 
                 Bxn_xx(1+nn*NumEdges:NumEdges+nn*NumEdges) = del:del:len-del;
                 Bxn_yy(1+nn*NumEdges:NumEdges+nn*NumEdges) =  del*(nn+1/2)*ones(1,NumCells-1);
@@ -97,6 +84,11 @@ classdef thePlate
                 Byn_yy(1+nn*NumEdges:NumEdges+nn*NumEdges) = del:del:len-del;
 
             end
+%if you change it this, nullNew won't work anymore :P    
+%             for nn = 0:NumEdges-1
+%                 Byn_xx(1+nn*NumCells:NumEdges+nn*NumCells+1) =  del/2:del:lenx-del/2;
+%                 Byn_yy(1+nn*NumCells:NumEdges+nn*NumCells+1) = del*(nn+1)*ones(1,NumCells);
+%             end
             %coefficients from polyfit on 15->36 numCells and looks good
             %their :P
             estTime = 0.066737494727867*NumCells^2 - 2.180457154716433*NumCells + 18.854789338347764;
@@ -130,6 +122,8 @@ classdef thePlate
 
             TxmByn = zeros(numElt);
             
+            TymByn = zeros(1,numElt);
+            TymBynsp = zeros(1,numElt);
 
             %define function
             %green's function shifted to xm-xn and ym-yn
@@ -189,7 +183,22 @@ classdef thePlate
                 TxmBxnsp(mm) = integral2(ggpp1xx,xmxn-del*3/2,xmxn-del/2,  ymyn-del/2,ymyn+del/2)...
                               +integral2(ggpp2xx,xmxn-del/2,  xmxn+del/2,  ymyn-del/2,ymyn+del/2)...
                               +integral2(ggpp3xx,xmxn+del/2,  xmxn+del*3/2,ymyn-del/2,ymyn+del/2);
+                             
+                %---------------fourth convolution------------
+                xmxn= obj.Byn_xx(mm)-obj.Byn_xx(1);
+                ymyn= obj.Byn_yy(mm)-obj.Byn_yy(1);
+                %first integral
+                TymByn(mm) =    integral2(gg,xmxn-del/2,xmxn+del/2,ymyn-del*3/2,ymyn-del/2)...
+                             -2*integral2(gg,xmxn-del/2,xmxn+del/2,ymyn-del/2,  ymyn+del/2)...
+                             +  integral2(gg,xmxn-del/2,xmxn+del/2,ymyn+del/2,  ymyn+del*3/2);
+                %second integral
+                ggpp1yy = @(xp,yp) (  9/8+(yp-ymyn).*3./ (2*del) +(yp-ymyn).^2./(2*del^2)) .* gg(xp,yp);    
+                ggpp2yy = @(xp,yp) (  3/4-(yp-ymyn).^2./ del^2)                            .* gg(xp,yp);
+                ggpp3yy = @(xp,yp) (  9/8-(yp-ymyn).*3./(2*del)    +(yp-ymyn).^2/(2*del.^2)) .* gg(xp,yp);
 
+                TymBynsp(mm) =    integral2(ggpp1yy,xmxn-del/2,xmxn+del/2,ymyn-del*3/2,ymyn-del/2)...
+                                 +integral2(ggpp2yy,xmxn-del/2,xmxn+del/2,ymyn-del/2,  ymyn+del/2)...
+                                 +integral2(ggpp3yy,xmxn-del/2,xmxn+del/2,ymyn+del/2,  ymyn+del*3/2);
 
                 for nn = 1:numElt 
                         %----------second and third convolution---------------------
@@ -216,7 +225,8 @@ classdef thePlate
 %             TxmBxn = TxmBxn+TxmBxnsp;
             TxmCell = cell(1,obj.NumCells);
             TxmspCell = cell(1,obj.NumCells);
-
+            TymCell = cell(1,obj.NumCells);
+            TymspCell = cell(1,obj.NumCells);
             for ii = 0:obj.NumCells-1
                 %have to do repeat because matlab makes toeplitz matrix hermitain by default
                 %TxmBxn
@@ -226,70 +236,30 @@ classdef thePlate
                 %TxmBxnsp
                 TxmspCell(ii+1) = {toeplitz(TxmBxnsp(1+numEdge*ii:numEdge+(numEdge*ii)),...
                                             TxmBxnsp(1+numEdge*ii:numEdge+(numEdge*ii)))};
-
+                %TymByn
+                TymCell(ii+1) = {toeplitz(TymByn(1+numEdge*ii:numEdge+(numEdge*ii)),...
+                                          TymByn(1+numEdge*ii:numEdge+(numEdge*ii)))};
+                
+                %TymBynsp
+                TymspCell(ii+1) = {toeplitz(TymBynsp(1+numEdge*ii:numEdge+(numEdge*ii)),...
+                                            TymBynsp(1+numEdge*ii:numEdge+(numEdge*ii)))};
             end
             
             
             TxmBxn = cell2mat(TxmCell(toeplitz(1:obj.NumCells))); %toeplitz matrix now
             TxmBxnsp = cell2mat(TxmspCell(toeplitz(1:obj.NumCells))); %toeplitz matrix now
-            
-            %-----------add loss in-------------------
-            numCells = obj.NumCells;
-            numEdges = obj.NumCells-1;
-            %bxtx
-            aa= 3*del/4; 
-%             bb = 9*del/8;
-            bb = del/8;
-            %create block matrix to be repeated along diagonal
-            mainDiag = aa*ones(1,numEdges);
-            offDiag = bb*ones(1,numEdges-1);
-            matDiag = diag(mainDiag)+diag(offDiag,1)+diag(offDiag,-1);
-            %create matrix
-            bxtxLoss = zeros(numCells*numEdges);
-            for ii = 0:numCells-1
-                startRow = ii*numEdges+1;
-                bxtxLoss(startRow:startRow+numEdges-1, startRow:startRow+numEdges-1) = matDiag;
-            end
-            
-            %bxty
-            %have "block" diagonal now
-            cc = 0;del/4;
-%             cc=0;
-            %create diagonals
-            mainDiag = cc*ones(1,numEdges);
-            offDiag = cc*ones(1,numEdges-1);
-            %extra column for nonsquare matrix... ie) i'm cheating. need edgesxcell
-            %matrix, with cc along 2 diagonals. 
-            extraCol = zeros(numEdges,1); 
-            extraCol(end) = cc;
-            %create block matrix
-            matDiag = diag(mainDiag)+diag(offDiag,1); %creates square matrix
-            matDiag = [matDiag extraCol]; %shove extra column on
-            %create Matrix
-            bxtyLoss = zeros(numCells*numEdges);
-            for ii = 0:numEdges-1
-                %top diagonal
-                startRow = ii*numEdges+1;
-                startCol = ii*numCells+1;
-                bxtyLoss(startRow:startRow+numEdges-1, startCol:startCol+numCells-1) = matDiag;
-
-                %bottom diagonal
-                %same column, but starts below
-                startRow = ii*numEdges+1+numEdges;
-                bxtyLoss(startRow:startRow+numEdges-1, startCol:startCol+numCells-1) = matDiag;
-            end
-
+            TymByn = cell2mat(TymCell(toeplitz(1:obj.NumCells))); %toeplitz matrix now
+            TymBynsp = cell2mat(TymspCell(toeplitz(1:obj.NumCells))); %toeplitz matrix now
             
             %---finally generate A B C D from peterson p418-419
-            %check this for sign errors
-            AA = (-netta/(1j*kk))*(TxmBxn./del + kk^2*del*TxmBxnsp) + obj.ZL*bxtxLoss;
-            BB = (-netta/(1j*kk))*TxmByn./del + obj.ZL*bxtyLoss;
-            CC = rot90(fliplr((-netta/(1j*kk))*TxmByn/del + obj.ZL*bxtyLoss));
-            DD = AA;
+            AA = TxmBxn./del + kk^2*del*TxmBxnsp;
+            BB = TxmByn./del;
+            CC = rot90(fliplr(TxmByn))/del;
+            DD = TymByn./del + kk^2*del*TymBynsp;
             % 
             obj.EE_theta = [ex_theta ey_theta].';
             obj.EE_phi = [ex_phi ey_phi].';
-            obj.ZZ = [AA BB; CC DD];
+            obj.ZZ = (-netta/(1j*kk))*[AA BB; CC DD];
             obj.ZZinv = inv(obj.ZZ);
 
             obj.JJ_theta = obj.ZZ\obj.EE_theta; %[Jx;Jy] = [JJ(1:numElt); JJ(numElt+1:end)]
@@ -405,7 +375,7 @@ classdef thePlate
             end
             numVals = 360;
             theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
-            theta = linspace(0,pi/2,numVals); %for thesis
+            theta = linspace(0,2*pi,numVals); %for thesis
             rcs_tt = zeros(1,numVals);
             rcs_tp = zeros(1,numVals);
             rcs_pt = zeros(1,numVals);
@@ -415,35 +385,35 @@ classdef thePlate
                 [rcs_tt(ii),rcs_tp(ii),rcs_pt(ii),rcs_pp(ii)] = obj.getRCSVal(theta(ii),phi);
             end
             if(dBOn)
-                figure;plot(theta*180/pi,10*log10(rcs_tt))
+                figure;plot(theta,10*log10(rcs_tt))
                     title('RCS VV, E_{s theta}/E_{i theta}')
                     ylim([min(10*log10(rcs_tt)),max(10*log10(rcs_tt))])
 
-%                 figure;plot(theta*180/pi,10*log10(rcs_tp))
-%                     title('RCS VH, E_{s theta}/E_{i phi}')
-%                     ylim([min(10*log10(rcs_tp)),max(10*log10(rcs_tp))])
-% 
-%                 figure;plot(theta*180/pi,10*log10(rcs_pt))
-%                     title('RCS HV, E_{s phi}/E_{i theta}')
-%                     ylim([min(10*log10(rcs_pt)),max(10*log10(rcs_pt))])
+                figure;plot(theta,10*log10(rcs_tp))
+                    title('RCS VH, E_{s theta}/E_{i phi}')
+                    ylim([min(10*log10(rcs_tp)),max(10*log10(rcs_tp))])
 
-                figure;plot(theta*180/pi,10*log10(rcs_pp))
+                figure;plot(theta,10*log10(rcs_pt))
+                    title('RCS HV, E_{s phi}/E_{i theta}')
+                    ylim([min(10*log10(rcs_pt)),max(10*log10(rcs_pt))])
+
+                figure;plot(theta,10*log10(rcs_pp))
                     title('RCS Hh, E_{s phi}/E_{i phi}')
                     ylim([min(10*log10(rcs_pp)),max(10*log10(rcs_pp))])
             else
-                figure;plot(theta*180/pi,rcs_tt)
+                figure;plot(theta,rcs_tt)
                     title('RCS VV, E_{s theta}/E_{i theta}')
                     ylim([min(rcs_tt),max(rcs_tt)])
 
-%                 figure;plot(theta*180/pi,rcs_tp)
-%                     title('RCS VH, E_{s theta}/E_{phi}')
-%                     ylim([min(rcs_tp),max(rcs_tp)])
-% 
-%                 figure;plot(theta*180/pi,rcs_pt)
-%                     title('RCS HV, E_{s phi}/E_{i theta}')
-%                     ylim([min(rcs_pt),max(rcs_pt)])
+                figure;plot(theta,rcs_tp)
+                    title('RCS VH, E_{s theta}/E_{phi}')
+                    ylim([min(rcs_tp),max(rcs_tp)])
 
-                figure;plot(theta*180/pi,rcs_pp)
+                figure;plot(theta,rcs_pt)
+                    title('RCS HV, E_{s phi}/E_{i theta}')
+                    ylim([min(rcs_pt),max(rcs_pt)])
+
+                figure;plot(theta,rcs_pp)
                     title('RCS Hh, E_{s phi}/E_{i phi}')
                     ylim([min(rcs_pp),max(rcs_pp)])
             end
@@ -482,7 +452,7 @@ classdef thePlate
             %the scattered field, second is the current
             
             numVals = 360;
-            theta =linspace(0,pi/2,numVals);linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
+            theta =linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
             
             rcs_tt = zeros(1,numVals);
             rcs_tp = zeros(1,numVals);
@@ -493,25 +463,21 @@ classdef thePlate
                 obj = obj.changeEinc(phi,theta(ii));
                 [rcs_tt(ii),rcs_tp(ii),rcs_pt(ii),rcs_pp(ii)] = obj.getRCSVal(theta(ii),phi);
             end
-                figure;plot(theta*180/pi,10*log10(rcs_tt))
+                figure;plot(theta,10*log10(rcs_tt))
                 title('RCS VV, E_{s theta}/E_{i theta}')
                 ylim([min(10*log10(rcs_tt)),max(10*log10(rcs_tt))])
-                xlabel('angle'); ylabel('monorcs (dB)')
-                
-                figure;plot(theta*180/pi,10*log10(rcs_tp))
+
+                figure;plot(theta,10*log10(rcs_tp))
                 title('RCS VH, E_{s theta}/E_{phi}')
                 ylim([min(10*log10(rcs_tp)),max(10*log10(rcs_tp))])
-                xlabel('angle'); ylabel('monorcs (dB)')
-                
-                figure;plot(theta*180/pi,10*log10(rcs_pt))
+
+                figure;plot(theta,10*log10(rcs_pt))
                 title('RCS HV, E_{s phi}/E_{i theta}')
                 ylim([min(10*log10(rcs_pt)),max(10*log10(rcs_pt))])
-                xlabel('angle'); ylabel('monorcs (dB)')
-                
-                figure;plot(theta*180/pi,10*log10(rcs_pp))
+
+                figure;plot(theta,10*log10(rcs_pp))
                 title('RCS Hh, E_{s phi}/E_{i phi}')
                 ylim([min(10*log10(rcs_pp)),max(10*log10(rcs_pp))])
-                xlabel('angle'); ylabel('monorcs (dB)')
 
         end
         
@@ -778,7 +744,6 @@ classdef thePlate
 
             figure;subplot(1,2,1);
             imagesc(XX(1,:),YY(1,:),abs(JJMat))
-%             surf(XX,YY,abs(JJMat))
 
             title(['J_{tx} phiInc = ',num2str(obj.phiInc)]);
             xlabel('x - wavelength'); ylabel('y - wavelength')
@@ -797,7 +762,6 @@ classdef thePlate
             end
             subplot(1,2,2);
             imagesc(XX(1,:),YY(1,:),abs(JJMat))
-%             surf(XX,YY,abs(JJMat))
             title(['J_{ty} phiInc = ',num2str(obj.phiInc)]);
             xlabel('x - wavelength'); ylabel('y - wavelength')
             

@@ -5,15 +5,15 @@
 
 %operating frequency (this can be an array, using one value, so rcs plots
 %don't get crazy)
-freq = 10*10^9; %hz 
+freq = 35*10^9; %hz 
 
 %plate size
-plateLength = 2 * .0254; %2 inches converted to meters
+plateLength = 3*10^-3;%2 * .0254; %2 inches converted to meters
 
 %angles to be optimized over
 %not showing that part of code, so just leaving these as a single value
-thetaVals = 0;
-phiVals = 0;
+thetaVals = linspace(0,pi/2,181);
+phiVals = linspace(0,pi/4,12);
 
 %set NumCells: controls number of cells across a single row, so for example 
 %a 10x10 would have 100 cells total. each one of these cells can be turned
@@ -42,7 +42,7 @@ pixelSize = 4;
 %create even chaff
 NumCells_even = 32
 % tic
-% chf_even = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_even,pixelSize);
+chf_even = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_even,pixelSize);
 % toc
 
 %% set pattern
@@ -54,10 +54,10 @@ pixelNum = NumCells_even/pixelSize
 % nullPixelLT = tril(lt)
 
 % can control pattern
-nullPixelLT = [1 0 0 0;...
-               1 1 0 0;...
-               0 1 1 0;...
-               1 1 0 1];
+nullPixelLT = [1 1 1 1;...
+               1 0 1 1;...
+               1 1 0 1;...
+               1 1 1 1];
 %% set symmetric pattern - even
 
 %odd plots

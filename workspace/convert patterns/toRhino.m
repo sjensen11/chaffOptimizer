@@ -4,10 +4,10 @@
 
 %mildly cheating and just writing a script, because lazy
 %values that can change
-inMat = Unitcell_3mm_35GHz_no_registration_no_border;
+inMat = Fullpattern_3mm_35GHz_without_registration;
 plateLength = 3;
 NumCells =60;
-filename = 'unitcell_3mm.csv'
+filename = 'Fullpattern_3mm_35GHz_without_registration.csv'
 
 %turn 1/0 into nullPos
 [row,col]=find(inMat==0);

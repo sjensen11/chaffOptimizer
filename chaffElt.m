@@ -695,17 +695,18 @@ classdef chaffElt
 
         end
 %% -----------        
-        function [chfNulled,pointsOnFull,RCSavg] = maximizeRCSAvgSymmPatternSearch(obj,on)
-            %DOESN'T WORK
+        function [chfNulled,nullMat,RCSavg] = maximizeRCSAvgSymmPatternSearch(obj,on,maxIterations)
+            %Not sure this works
             %runs the genetic algorithm code... the range of angles can be
             %found in chf.null2minRCSAvg
             %tries to build in some symettry assumes each quarter has to
             %"look" the same ie) if top left is tt then whole matrix will
             %be [tt fliplr(tt); flipud(tt) fliplr(flipud(tt))]
             disp('starting optimizaton for symmetric chaff')
-            numCellsFull = obj.getNumCellsRow(); %Number of cells of full plate
-            numCellsQuarter = numCellsFull/2; %number of cells in one quarter
-            numPoints = numCellsQuarter^2; %number of points in a quarter
+
+            numQuartPixel = ceil(obj.numPixels/2); %in case of odd number 
+            numPoints = numQuartPixel^2; %number of points in a quarter
+
             if on %start with array of 0 or 1 (no sheet or all metal)
                 startCond = ones(1,numPoints); %initial guess
             else
@@ -715,17 +716,17 @@ classdef chaffElt
             pointsOn_lb = zeros(numPoints,1);
             pointsOn_ub = ones(numPoints,1);
             options = optimoptions('patternsearch','ScaleMesh','off','PlotFcn',{'psplotbestf','psplotfuncount','psplotbestx'},...
-                                   'MaxIterations',1000);
+                                   'MaxIterations',maxIterations);
 
 
             %maximizing center main beam
-            [pointsOnVal,RCSavg] = patternsearch(@(pointsOn) -obj.null2minRCSAvgQuarter(pointsOn),startCond,[],[],[],[],pointsOn_lb,pointsOn_ub,options);
+            [pointsOnVal,RCSavg] = patternsearch(@(pointsOn) -obj.null2minRCSAvgSym(pointsOn),startCond,[],[],[],[],pointsOn_lb,pointsOn_ub,options);
             
-            %pointsOnVal is just quarter cell, get full array
-            pointsOnFull = obj.quarter2FullArray(pointsOnVal,numCellsFull);
-
+            %reshape into matrix
+            nullQuartMat = reshape(pointsOnVal,ceil(obj.numPixels/2),ceil(obj.numPixels/2));
+                        
             %return nulled chaff
-            chfNulled = obj.nullNewFromOneArray(pointsOnFull); 
+            [chfNulled, nullMat] = obj.symmetricNullPix(nullQuartMat);
         end
 %% ======================= plot RCS stuff ===================================
         function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getBiRCSVals(obj,phi)
@@ -1152,13 +1153,13 @@ classdef chaffElt
                 subplot(1,2,1);
                 s = imagesc(phi,theta,rcsFullPP,[minxVal, maxVal]);
                 colorbar;
-                title(['rcs_{phi} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                title(['rcs_{\phi} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
                 subplot(1,2,2);                
                 s = imagesc(phi,theta,rcsNullPP,[minxVal, maxVal]);
                 colorbar;
-                title(['rcs_{phi} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                title(['rcs_{\phi} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
                 %now plot theta-theta
@@ -1169,13 +1170,13 @@ classdef chaffElt
                 subplot(1,2,1);
                 s = imagesc(phi,theta,rcsFullTT,[minxVal, maxVal]);
                 colorbar;
-                title(['rcs_{theta} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                title(['rcs_{\theta} plate freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
                 subplot(1,2,2);
                 s = imagesc(phi,theta,rcsNullTT,[minxVal,maxVal]);
                 colorbar;
-                title(['rcs_{theta} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
+                title(['rcs_{\theta} chaff freq= ' num2str(obj.freq(currPlate)*10^-9) 'Ghz'])
                 xlabel('phi');ylabel('theta')
                 
                 

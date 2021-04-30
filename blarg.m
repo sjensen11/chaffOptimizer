@@ -1,5 +1,48 @@
+%% generating matrices
+numCells = 4;
+numEdges = numCells-1;
+del = 1;
 
+%bxtx
+aa = 1;5*del/4;
+bb = 2;del/8;
+%create block matrix to be repeated along diagonal
+mainDiag = aa*ones(1,numEdges);
+offDiag = bb*ones(1,numEdges-1);
+matDiag = diag(mainDiag)+diag(offDiag,1)+diag(offDiag,-1)
+%create matrix
+bxtx = zeros(numCells*numEdges);
+for ii = 0:numCells-1
+    startRow = ii*numEdges+1;
+    bxtx(startRow:startRow+numEdges-1, startRow:startRow+numEdges-1) = matDiag;
+end
 
+%bxty
+%have "block" diagonal now
+cc = 3;del/2;
+%create diagonals
+mainDiag = cc*ones(1,numEdges);
+offDiag = cc*ones(1,numEdges-1);
+%extra column for nonsquare matrix... ie) i'm cheating. need edgesxcell
+%matrix, with cc along 2 diagonals. 
+extraCol = zeros(numEdges,1); 
+extraCol(end) = cc;
+%create block matrix
+matDiag = diag(mainDiag)+diag(offDiag,1); %creates square matrix
+matDiag = [matDiag extraCol]; %shove extra column on
+%create Matrix
+bxtyLoss = zeros(numCells*numEdges);
+for ii = 0:numEdges-1
+    %top diagonal
+    startRow = ii*numEdges+1;
+    startCol = ii*numCells+1;
+    bxtyLoss(startRow:startRow+numEdges-1, startCol:startCol+numCells-1) = matDiag;
+    
+    %bottom diagonal
+    %same column, but starts below
+    startRow = ii*numEdges+1+numEdges;
+    bxtyLoss(startRow:startRow+numEdges-1, startCol:startCol+numCells-1) = matDiag;
+end
 %% testing reshaping
 % tt = 1:16
 % reshape(tt,4,4)
