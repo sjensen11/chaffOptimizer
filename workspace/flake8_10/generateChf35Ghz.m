@@ -4,18 +4,18 @@
 
 
 %% this is demostration of chaffElt
-freq = [8].*10^9; %hz, operating frequency
+freq = 35.*10^9; %hz, operating frequency
 
-plateLength = 2 * .0254; %2 inches converted to meters
+plateLength = 3*10^-3;
 %angles to be optimized over
-thetaVals = linspace(0,pi/2,20);
-phiVals = linspace(0,pi/2,20);
+thetaVals = linspace(0,pi/2,181);
+phiVals = linspace(0,pi/4,12);
 
-NumCells = 20;
+NumCells = 60;
 pixelSize = 4;
-
+tic
 chf = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells,pixelSize);
-
+toc
 %% playing with nullPixel
 % close all
 nullPlot = randi([0,1],NumCells/pixelSize);
@@ -55,7 +55,8 @@ disp(['minues to run ' num2str(runtime/60)])
 
 %% optimize pattern search
 on = 0; %controls if starting with full metal or nothing
+maxIterations = 40;
 tic
-[chfNulledPS,pointsOnFullPS,RCSavgPS] = chf.maximizeRCSAvgSymmPatternSearch(on);
+[chfNulledPS,pointsOnFullPS,RCSavgPS] = chf.maximizeRCSAvgSymmPatternSearch(on,maxIterations);
 runtime = toc
 disp(['minues to run ' num2str(runtime/60)])

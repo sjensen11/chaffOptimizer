@@ -1,0 +1,27 @@
+** A dielectric sphere in the field of an incident wave
+** Define the variables
+#W=0.00124913524 
+#fo=10000000000000000000.000 
+#c=3e8 
+#lo=#c/#fo 
+** Define segmentation parameters
+
+IP:  :  :  :  :  :  : #lo/10
+
+
+** The corner points
+DP: S1 :  :  :  :  : #W : -#W : 0
+DP: S2 :  :  :  :  : #W : #W : 0
+DP: S3 :  :  :  :  : -#W : #W : 0
+DP: S4 :  :  :  :  : -#W : -#W : 0
+
+
+** plate please
+BP: S1 : S2 : S3 : S4
+
+
+
+** End of the geometry
+EG: 1 : 0 : 0 :  :  : 1e-6 :  :  :  :  :  :  : 1 
+
+EN

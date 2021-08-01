@@ -1,0 +1,1167 @@
+-- CADFEKO v2021-2100 (x64)
+app = cf.GetApplication()
+project = app.Project
+
+-- Added variable "W"
+W = project.Variables:Add("W",0.003)
+
+-- Created geometry: rectangle "Plate"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.DefinitionMethod = cf.Enums.RectangleDefinitionMethodEnum.BaseAtCentre
+properties.Depth = "W"
+properties.Label = "Plate"
+properties.Width = "W"
+Plate = project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle1"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle1"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle1= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle2"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle2"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle2= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle3"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle3"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle3= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle4"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle4"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle4= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle5"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle5"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "-0.00021429"
+properties.Width = "0.00010714"
+Rectangle5= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle6"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle6"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "-0.00010714"
+properties.Width = "0.00010714"
+Rectangle6= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle7"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle7"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "0"
+properties.Width = "0.00010714"
+Rectangle7= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle8"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle8"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "0.00010714"
+properties.Width = "0.00010714"
+Rectangle8= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle9"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle9"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle9= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle10"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle10"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle10= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle11"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle11"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle11= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle12"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle12"
+properties.Origin.U = "-0.00064286"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle12= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle13"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle13"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle13= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle14"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle14"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle14= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle15"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle15"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle15= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle16"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle16"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle16= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle17"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle17"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "-0.00021429"
+properties.Width = "0.00010714"
+Rectangle17= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle18"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle18"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "-0.00010714"
+properties.Width = "0.00010714"
+Rectangle18= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle19"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle19"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "0"
+properties.Width = "0.00010714"
+Rectangle19= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle20"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle20"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "0.00010714"
+properties.Width = "0.00010714"
+Rectangle20= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle21"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle21"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle21= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle22"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle22"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle22= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle23"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle23"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle23= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle24"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle24"
+properties.Origin.U = "-0.00053571"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle24= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle25"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle25"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle25= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle26"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle26"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle26= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle27"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle27"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle27= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle28"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle28"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle28= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle29"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle29"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "-0.00021429"
+properties.Width = "0.00010714"
+Rectangle29= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle30"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle30"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "-0.00010714"
+properties.Width = "0.00010714"
+Rectangle30= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle31"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle31"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "0"
+properties.Width = "0.00010714"
+Rectangle31= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle32"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle32"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "0.00010714"
+properties.Width = "0.00010714"
+Rectangle32= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle33"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle33"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle33= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle34"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle34"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle34= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle35"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle35"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle35= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle36"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle36"
+properties.Origin.U = "-0.00042857"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle36= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle37"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle37"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle37= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle38"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle38"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle38= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle39"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle39"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle39= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle40"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle40"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle40= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle41"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle41"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "-0.00021429"
+properties.Width = "0.00010714"
+Rectangle41= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle42"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle42"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "-0.00010714"
+properties.Width = "0.00010714"
+Rectangle42= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle43"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle43"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "0"
+properties.Width = "0.00010714"
+Rectangle43= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle44"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle44"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "0.00010714"
+properties.Width = "0.00010714"
+Rectangle44= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle45"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle45"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle45= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle46"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle46"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle46= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle47"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle47"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle47= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle48"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle48"
+properties.Origin.U = "-0.00032143"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle48= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle49"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle49"
+properties.Origin.U = "-0.00021429"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle49= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle50"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle50"
+properties.Origin.U = "-0.00021429"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle50= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle51"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle51"
+properties.Origin.U = "-0.00021429"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle51= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle52"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle52"
+properties.Origin.U = "-0.00021429"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle52= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle53"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle53"
+properties.Origin.U = "-0.00021429"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle53= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle54"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle54"
+properties.Origin.U = "-0.00021429"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle54= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle55"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle55"
+properties.Origin.U = "-0.00021429"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle55= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle56"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle56"
+properties.Origin.U = "-0.00021429"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle56= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle57"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle57"
+properties.Origin.U = "-0.00010714"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle57= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle58"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle58"
+properties.Origin.U = "-0.00010714"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle58= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle59"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle59"
+properties.Origin.U = "-0.00010714"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle59= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle60"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle60"
+properties.Origin.U = "-0.00010714"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle60= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle61"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle61"
+properties.Origin.U = "-0.00010714"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle61= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle62"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle62"
+properties.Origin.U = "-0.00010714"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle62= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle63"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle63"
+properties.Origin.U = "-0.00010714"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle63= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle64"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle64"
+properties.Origin.U = "-0.00010714"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle64= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle65"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle65"
+properties.Origin.U = "0"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle65= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle66"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle66"
+properties.Origin.U = "0"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle66= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle67"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle67"
+properties.Origin.U = "0"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle67= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle68"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle68"
+properties.Origin.U = "0"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle68= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle69"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle69"
+properties.Origin.U = "0"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle69= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle70"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle70"
+properties.Origin.U = "0"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle70= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle71"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle71"
+properties.Origin.U = "0"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle71= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle72"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle72"
+properties.Origin.U = "0"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle72= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle73"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle73"
+properties.Origin.U = "0.00010714"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle73= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle74"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle74"
+properties.Origin.U = "0.00010714"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle74= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle75"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle75"
+properties.Origin.U = "0.00010714"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle75= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle76"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle76"
+properties.Origin.U = "0.00010714"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle76= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle77"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle77"
+properties.Origin.U = "0.00010714"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle77= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle78"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle78"
+properties.Origin.U = "0.00010714"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle78= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle79"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle79"
+properties.Origin.U = "0.00010714"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle79= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle80"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle80"
+properties.Origin.U = "0.00010714"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle80= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle81"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle81"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle81= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle82"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle82"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle82= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle83"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle83"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle83= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle84"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle84"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle84= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle85"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle85"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "-0.00021429"
+properties.Width = "0.00010714"
+Rectangle85= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle86"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle86"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "-0.00010714"
+properties.Width = "0.00010714"
+Rectangle86= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle87"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle87"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "0"
+properties.Width = "0.00010714"
+Rectangle87= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle88"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle88"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "0.00010714"
+properties.Width = "0.00010714"
+Rectangle88= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle89"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle89"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle89= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle90"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle90"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle90= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle91"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle91"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle91= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle92"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle92"
+properties.Origin.U = "0.00021429"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle92= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle93"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle93"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle93= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle94"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle94"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle94= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle95"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle95"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle95= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle96"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle96"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle96= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle97"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle97"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "-0.00021429"
+properties.Width = "0.00010714"
+Rectangle97= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle98"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle98"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "-0.00010714"
+properties.Width = "0.00010714"
+Rectangle98= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle99"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle99"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "0"
+properties.Width = "0.00010714"
+Rectangle99= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle100"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle100"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "0.00010714"
+properties.Width = "0.00010714"
+Rectangle100= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle101"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle101"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle101= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle102"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle102"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle102= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle103"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle103"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle103= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle104"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle104"
+properties.Origin.U = "0.00032143"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle104= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle105"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle105"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle105= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle106"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle106"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle106= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle107"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle107"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle107= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle108"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle108"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle108= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle109"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle109"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "-0.00021429"
+properties.Width = "0.00010714"
+Rectangle109= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle110"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle110"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "-0.00010714"
+properties.Width = "0.00010714"
+Rectangle110= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle111"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle111"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "0"
+properties.Width = "0.00010714"
+Rectangle111= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle112"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle112"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "0.00010714"
+properties.Width = "0.00010714"
+Rectangle112= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle113"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle113"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle113= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle114"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle114"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle114= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle115"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle115"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle115= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle116"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle116"
+properties.Origin.U = "0.00042857"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle116= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle117"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle117"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "-0.00064286"
+properties.Width = "0.00010714"
+Rectangle117= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle118"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle118"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "-0.00053571"
+properties.Width = "0.00010714"
+Rectangle118= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle119"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle119"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "-0.00042857"
+properties.Width = "0.00010714"
+Rectangle119= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle120"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle120"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "-0.00032143"
+properties.Width = "0.00010714"
+Rectangle120= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle121"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle121"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "-0.00021429"
+properties.Width = "0.00010714"
+Rectangle121= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle122"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle122"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "-0.00010714"
+properties.Width = "0.00010714"
+Rectangle122= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle123"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle123"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "0"
+properties.Width = "0.00010714"
+Rectangle123= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle124"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle124"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "0.00010714"
+properties.Width = "0.00010714"
+Rectangle124= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle125"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle125"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "0.00021429"
+properties.Width = "0.00010714"
+Rectangle125= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle126"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle126"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "0.00032143"
+properties.Width = "0.00010714"
+Rectangle126= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle127"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle127"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "0.00042857"
+properties.Width = "0.00010714"
+Rectangle127= project.Geometry:AddRectangle(properties)
+
+-- Created geometry: rectangle "Rectangle128"
+properties = cf.Rectangle.GetDefaultProperties()
+properties.Depth = "0.00010714"
+properties.Label = "Rectangle128"
+properties.Origin.U = "0.00053571"
+properties.Origin.V = "0.00053571"
+properties.Width = "0.00010714"
+Rectangle128= project.Geometry:AddRectangle(properties)
+

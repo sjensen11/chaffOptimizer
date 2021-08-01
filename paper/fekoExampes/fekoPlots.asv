@@ -1,0 +1,37 @@
+%% my stuff
+phi = 0;
+[theta,rcsTT, rcsPT, rcsTP, rcsPP] =  chfNulled.getBiRCSVals(phi);
+
+%% 30 GHz
+%feko stuff
+fekoFile = '3mmKA_30GHz.dat';   
+fekoVals = readmatrix(fekoFile);
+
+thetaFeko = fekoVals(:,1);
+rcsFeko = fekoVals(:,2);
+
+figure;plot(theta*180/pi,rcsTT(1,:),thetaFeko,rcsFeko)
+title('30GHz BiRCS')
+xlabel('\theta (deg)'); ylabel('bi rcs m^2')
+
+%% 35 GHz
+fekoFile = '3mmKA_35GHz.dat';   
+fekoVals = readmatrix(fekoFile);
+
+thetaFeko = fekoVals(:,1);
+rcsFeko = fekoVals(:,2);
+
+figure;plot(theta*180/pi,rcsTT(2,:),thetaFeko,rcsFeko)
+title('35GHz BiRCS')
+xlabel('\theta (deg)'); ylabel('bi rcs m^2')
+
+%% 40 GHz
+fekoFile = '3mmKA_40GHz.dat';   
+fekoVals = readmatrix(fekoFile);
+
+thetaFeko = fekoVals(:,1);
+rcsFeko = fekoVals(:,2);
+
+figure;plot(theta*180/pi,rcsTT(3,:),thetaFeko,rcsFeko)
+title('40GHz BiRCS')
+xlabel('\theta (deg)'); ylabel('bi rcs m^2')
