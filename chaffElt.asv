@@ -729,47 +729,8 @@ classdef chaffElt
 
 
             %maximizing center main beam
-            tic
             [pointsOnVal,RCSavg] = patternsearch(@(pointsOn) -obj.null2minRCSAvgSym(pointsOn),startCond,[],[],[],[],pointsOn_lb,pointsOn_ub,options);
-            time = toc
-            disp(['runtime = ' num2str(time)]) 
-            %reshape into matrix
-            nullQuartMat = reshape(pointsOnVal,ceil(obj.numPixels/2),ceil(obj.numPixels/2));
-                        
-            %return nulled chaff
-            [chfNulled, nullMat] = obj.symmetricNullPix(nullQuartMat);
-        end
-        
-        %% -----------        
-        function [chfNulled,nullMat,RCSavg] = maximizeRCSAvgSymmParticlSwarm(obj,on,maxIterations)
-            %Not sure this works
-            %runs the genetic algorithm code... the range of angles can be
-            %found in chf.null2minRCSAvg
-            %tries to build in some symettry assumes each quarter has to
-            %"look" the same ie) if top left is tt then whole matrix will
-            %be [tt fliplr(tt); flipud(tt) fliplr(flipud(tt))]
-            disp('starting optimizaton for symmetric chaff')
-
-            numQuartPixel = ceil(obj.numPixels/2); %in case of odd number 
-            numPoints = numQuartPixel^2; %number of points in a quarter
-
-            if on %start with array of 0 or 1 (no sheet or all metal)
-                startCond = ones(1,numPoints); %initial guess
-            else
-                startCond = zeros(1,numPoints); %initial guess
-            end
-
-            pointsOn_lb = zeros(numPoints,1);
-            pointsOn_ub = ones(numPoints,1);
-            options = optimoptions('patternsearch','ScaleMesh','off','PlotFcn',{'psplotbestf','psplotfuncount','psplotbestx'},...
-                                   'MaxIterations',maxIterations);
-
-
-            %maximizing center main beam
-            tic
-            [pointsOnVal,RCSavg] = particleswarm(@(pointsOn) -obj.null2minRCSAvgSym(pointsOn),pointsOn_lb,pointsOn_ub,options);
-            time = toc
-            disp(['runtime = ' num2str(time)]) 
+            
             %reshape into matrix
             nullQuartMat = reshape(pointsOnVal,ceil(obj.numPixels/2),ceil(obj.numPixels/2));
                         
@@ -788,9 +749,9 @@ classdef chaffElt
                 phi = 0; 
             end
            
-            numVals = 90;
+            numVals = 360;
             theta = linspace(0,2*pi,360);%linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
-            theta = linspace(-pi/2,pi/2,numVals);
+            theta = linspace(-,pi/2,360);
             freqLen = length(obj.freq);
             
             %pre-allocate matrix
@@ -955,7 +916,7 @@ classdef chaffElt
                 phi = 0; 
             end
             if(nargin <3) %defaults theta values
-                numVals = 180;
+                numVals = 360;
                 theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
             else
                 numVals = length(theta); %need for for loop
@@ -1027,25 +988,19 @@ classdef chaffElt
             end
         end
         
-        function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSValsFULL(obj,phi,theta)
+        function [theta,rcsTT, rcsPT, rcsTP, rcsPP] =  getMonoRCSValsFULL(obj,phi)
             %returns the bistatic radar cross-section... rows are each
             %individual frequency ie) rcsNull(1) is the first plate
             %response
             %gives the full plate... mostly using to compare against nulled
             %plate
-            
-            if(nargin <3) %defaults theta values
-                numVals = 180;
-                theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
-            else
-                numVals = length(theta); %need for for loop
-            end
-            
             %give phi a default value of 0
             if(nargin <2)
                 phi = 0; 
             end
            
+            numVals = 360;
+            theta = linspace(-pi/2,pi/2,numVals);%only need top of plate :Plinspace(0,2*pi,numVals);
             freqLen = length(obj.freq);
             
             %pre-allocate matrix

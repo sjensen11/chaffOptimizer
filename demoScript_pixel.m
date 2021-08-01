@@ -5,14 +5,14 @@
 
 %operating frequency (this can be an array, using one value, so rcs plots
 %don't get crazy)
-freq = 35*10^9; %hz 
+freq = 10*10^9; %hz 
 
 %plate size
-plateLength = 3*10^-3;%2 * .0254; %2 inches converted to meters
-
+lda = physconst('LightSpeed')/freq;
+plateLength = 1*lda
 %angles to be optimized over
 %not showing that part of code, so just leaving these as a single value
-thetaVals = linspace(0,pi/2,181);
+thetaVals = linspace(0,pi/2,20);
 phiVals = linspace(0,pi/4,12);
 
 %set NumCells: controls number of cells across a single row, so for example 
@@ -33,17 +33,20 @@ NumCells_odd = 28;
 pixelSize = 4;
 
 
+%set ZL
+%impedance sheet value
+ZL =10
 
 %create odd chaff
-% tic
-% chf_odd = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_odd ,pixelSize);
-% toc
+tic
+chf_odd = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_odd ,pixelSize,ZL);
+toc
 
 %create even chaff
-NumCells_even = 32
-% tic
-chf_even = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_even,pixelSize);
-% toc
+% NumCells_even = 32
+% % tic
+% chf_even = chaffElt(freq,plateLength,thetaVals, phiVals,NumCells_even,pixelSize,ZL );
+% % toc
 
 %% set pattern
 %function takes in a lower triangle matrix and transforms it for a
@@ -66,7 +69,7 @@ chf_even.plotNullPos
 
 %plot one of the currents
 [Jx_phi_mat,Jy_phi_mat,Jx_theta_mat,Jy_theta_mat,del] = plotcurrent(chf_even.plateNull);
-figure;imagesc(abs(Jx_phi_mat))
+figure;imagesc(abs(Jy_phi_mat))
 title('Jx_{\phi} for 8 across')
 %% set symmetric pattern - odd
 
@@ -90,5 +93,25 @@ xxQuarter([1,2,6]) = 0
 avgRCS = chf_odd.null2minRCSAvgSym(xxQuarter)
 
 %% optimization code
-chf_odd.maximizeRCSAvgSymm()
+maxRuns = 20
+[chfNulled,nullMat,RCSavg] = chf_odd.maximizeRCSAvgSymm(maxRuns)
 
+%% plot optimized current
+[Jx_phi_mat,Jy_phi_mat,Jx_theta_mat,Jy_theta_mat,del] = plotcurrent(chfNulled.plateNull);
+figure;imagesc(abs(Jy_phi_mat))
+title('Jy_{\phi} for 7 across')
+
+
+%% plot RCS
+
+%chfNulled.plotMonoFlat(0); %no dB
+[theta,rcsTT, rcsPT, rcsTP, rcsPP] =  chfNulled.getMonoRCSValsFULL(0);
+
+figure;plot(theta,rcsTT)
+figure;plot(theta,rcsTT*lda^2);
+figure;plot(theta,rcsTT/(lda^2));
+
+
+%% to feko
+filename ='chfNull10GHz3cm.lua'
+toFeko(chfNulled,filename)

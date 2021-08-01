@@ -7,7 +7,7 @@ thetaInc = 0;
 
 ZZ = 1  ;
 len = 1
-NumCells = 20 %for 1/10 division
+NumCells = 10 %for 1/10 division
  
 plateZ1ab= thePlate(NumCells, len ,phiInc,thetaInc,ZZ);
 % plateZ = thePlate_Metal(NumCells, len ,phiInc,thetaInc);
