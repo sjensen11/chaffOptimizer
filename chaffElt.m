@@ -1822,16 +1822,22 @@ classdef chaffElt
         
         
 %% ---------------------- plotting null position ------------------        
-        function plotNullPos(obj)
+        function plotNullPos(obj,scaleFactor)
             %plotting what cells are getting nulled
             %Bxn so row = NumCell, col = NumEdge
+            %1"=0.0245 meters
+
+            if(nargin<2)
+                scaleFactor =10^3; 
+            end
             plateF = obj.plateFull(1);
             
             nullPosLocal = obj.nullPos; %have local value of nullPosLocal
                       
             del = plateF.Bxn_xx(2)-plateF.Bxn_xx(1); %get del 
             
-            xx = linspace(del/2,obj.plateLength/.0254,plateF.NumCells);
+            xx = linspace(0,obj.plateLength*scaleFactor,plateF.NumCells);
+%             xx = linspace(0,obj.plateLength,plateF.NumCells);
             yy = xx; %because square
             % plotting stuff
 %             [XX,YY] = meshgrid(xx,yy);
@@ -1855,9 +1861,12 @@ classdef chaffElt
             end
             
             figure;imagesc('XData',xx,'YData',yy,'CData',nullPlot) %plot
-            title('to size')
-            xlabel('inches')
-            ylabel('inches')
+            title('Optimized Chaff')
+            if(nargin<2) %for default it'll give label, otherwise need to do it post
+                xlabel('mm')
+                ylabel('mm')
+            end
+            axis([xx(1) xx(end) yy(1) yy(end)])
             hold on
             %plot grid
 %             for ii = 1:plateF.NumCells-1
