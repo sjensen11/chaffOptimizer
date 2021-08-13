@@ -154,11 +154,11 @@ on = 0; %start with nothing
 
 %% partical swarm optimization
 maxIterations = 50
-on = 0; %start with nothing
-[chfNulled,nullMat,RCSavg] = maximizeRCSAvgSymmPatternSearch(chf,on,maxIterations)
+
+[chfNulled,nullMat,RCSavg] = chf.maximizeRCSAvgSymmParticlSwarm(maxIterations)
 
 
 %% chaff improvement
 [avgRCSNull,avgRCSFull] = chfNulled.getAvgRCS()
-
+   
 percentBetter = avgRCSNull/avgRCSFull

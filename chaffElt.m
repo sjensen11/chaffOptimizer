@@ -741,7 +741,7 @@ classdef chaffElt
         end
         
         %% -----------        
-        function [chfNulled,nullMat,RCSavg] = maximizeRCSAvgSymmParticlSwarm(obj,on,maxIterations)
+        function [chfNulled,nullMat,RCSavg] = maximizeRCSAvgSymmParticlSwarm(obj,maxIterations)
             %Not sure this works
             %runs the genetic algorithm code... the range of angles can be
             %found in chf.null2minRCSAvg
@@ -752,22 +752,16 @@ classdef chaffElt
 
             numQuartPixel = ceil(obj.numPixels/2); %in case of odd number 
             numPoints = numQuartPixel^2; %number of points in a quarter
-
-            if on %start with array of 0 or 1 (no sheet or all metal)
-                startCond = ones(1,numPoints); %initial guess
-            else
-                startCond = zeros(1,numPoints); %initial guess
-            end
-
+ 
             pointsOn_lb = zeros(numPoints,1);
             pointsOn_ub = ones(numPoints,1);
-            options = optimoptions('patternsearch','ScaleMesh','off','PlotFcn',{'psplotbestf','psplotfuncount','psplotbestx'},...
+            options = optimoptions(@particleswarm,'PlotFcn','pswplotbestf',...
                                    'MaxIterations',maxIterations);
 
 
             %maximizing center main beam
             tic
-            [pointsOnVal,RCSavg] = particleswarm(@(pointsOn) -obj.null2minRCSAvgSym(pointsOn),pointsOn_lb,pointsOn_ub,options);
+            [pointsOnVal,RCSavg] = particleswarm(@(pointsOn) -obj.null2minRCSAvgSym(pointsOn),numPoints,pointsOn_lb,pointsOn_ub,options);
             time = toc
             disp(['runtime = ' num2str(time)]) 
             %reshape into matrix
